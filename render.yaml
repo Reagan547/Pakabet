@@ -1,0 +1,56 @@
+# Render Blueprint for the Pakabet API (Express + Socket.IO game server).
+# Deploy with: Render Dashboard -> New -> Blueprint -> pick this repo.
+# Values marked "sync: false" are secrets: Render prompts for them on first
+# deploy and never stores them in this file.
+services:
+  - type: web
+    name: pakabet-api
+    runtime: node
+    plan: starter          # Do NOT use "free": free instances sleep, which drops
+                           # the Socket.IO game loop and every live bet with it.
+    region: frankfurt      # Lowest latency Render region for Kenya.
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MONGODB_DB_NAME
+        value: pakabet
+      - key: ALLOWED_ORIGINS
+        value: https://pakabet.site,https://www.pakabet.site,https://api.pakabet.site
+      - key: PAYHERO_API_BASE
+        value: https://backend.payhero.co.ke/api/v2
+      - key: PAYHERO_CALLBACK_URL
+        value: https://api.pakabet.site/api/payments/payhero/callback
+      - key: PAYHERO_TEST_MODE
+        value: "false"
+      - key: PAYHERO_PENDING_PAYMENT_EXPIRY_MS
+        value: "300000"
+      - key: MIN_DEPOSIT_AMOUNT
+        value: "999"
+      # ---- secrets: entered in the Render dashboard, never committed ----
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PAYHERO_API_USERNAME
+        sync: false
+      - key: PAYHERO_API_PASSWORD
+        sync: false
+      - key: PAYHERO_BASIC_AUTH_TOKEN
+        sync: false
+      - key: PAYHERO_CHANNEL_ID
+        sync: false
+      - key: PAYHERO_CALLBACK_TOKEN
+        sync: false
+      - key: SEED_ADMIN_PHONE
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: SEED_ADMIN_USERNAME
+        sync: false
+      - key: SEED_ADMIN_EMAIL
+        sync: false
