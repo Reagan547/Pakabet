@@ -1,19 +1,78 @@
 <div class="pb-shell">
 
-  <!-- ══ TOP GREEN HEADER ══════════════════════════════════════════════════ -->
+  <!-- ══ M-PESA DEPOSIT STRIP (phone) ══════════════════════════════════════ -->
+  <button type="button" class="pb-paybill phone-only" (click)="openDeposit()">
+    <span class="pb-paybill-text">Deposit via <strong>M-PESA</strong></span>
+    <span class="pb-paybill-cta">Click to deposit</span>
+  </button>
+
+  <!-- ══ HEADER ════════════════════════════════════════════════════════════ -->
   <header class="pb-header">
-    <div class="pb-header-inner">
-      <button type="button" class="pb-burger phone-only" [attr.aria-expanded]="mobileMenuOpen()"
-              aria-label="Open menu" (click)="toggleMobileMenu()">
-        <span></span><span></span><span></span>
+
+    <!-- phone header: menu / search / logo / my bets / profile -->
+    <div class="pb-mhead phone-only">
+      <button type="button" class="pb-mhead-item" (click)="toggleMobileMenu()" aria-label="Menu">
+        <span class="pb-mhead-ico">
+          <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </span>
+        <span class="pb-mhead-lbl">Menu</span>
       </button>
 
+      <button type="button" class="pb-mhead-item" (click)="toggleSearch()" aria-label="Search">
+        <span class="pb-mhead-ico">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </span>
+        <span class="pb-mhead-lbl">Search</span>
+      </button>
+
+      <button type="button" class="pb-mhead-logo" (click)="setNavTab('sports')" aria-label="Pakabet home">
+        <img src="/assets/icons/pakabet-mark.png" alt="Pakabet">
+      </button>
+
+      <button type="button" class="pb-mhead-item" (click)="openMyBetsModal()" aria-label="My bets">
+        <span class="pb-mhead-ico">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+               stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h11M3 12h11M3 18h7"/><path d="m16 16 2.5 2.5L23 14"/></svg>
+        </span>
+        <span class="pb-mhead-lbl">My Bets</span>
+      </button>
+
+      <button type="button" class="pb-mhead-item" (click)="isAuthenticated ? toggleProfileMenu() : goToLogin()"
+              aria-label="Account">
+        <span class="pb-mhead-ico">
+          <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9">
+            <circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-4.1 3.4-6.6 7.5-6.6s7.5 2.5 7.5 6.6"/></svg>
+        </span>
+        <span class="pb-mhead-lbl">{{ isAuthenticated ? (userBalance() | number:'1.2-2') + '/-' : 'Log in' }}</span>
+      </button>
+
+      <div class="pb-profile-menu pb-profile-menu-m" *ngIf="showProfileMenu() && isAuthenticated">
+        <div class="pb-profile-head">
+          <span class="pb-avatar">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+          <div>
+            <strong>{{ currentUser()?.username || 'Player' }}</strong>
+            <small>KSh {{ userBalance() | number:'1.2-2' }}</small>
+          </div>
+        </div>
+        <button type="button" (click)="openMyBetsModal()">My Bets &amp; History</button>
+        <button type="button" (click)="openAccountModal()">Account Profile</button>
+        <button type="button" (click)="goToWallet()">Wallet &amp; Withdraw</button>
+        <button type="button" (click)="openDeposit()">Deposit Funds</button>
+        <button type="button" class="pb-menu-logout" (click)="logout()">Log Out</button>
+      </div>
+    </div>
+
+    <!-- desktop header -->
+    <div class="pb-header-inner laptop-only">
       <button type="button" class="pb-brand" (click)="setNavTab('sports')" aria-label="Pakabet home">
         <img src="/assets/icons/pakabet-mark.png" class="pb-brand-mark" alt="">
         <span class="pb-brand-word">Paka<span>bet</span></span>
       </button>
 
-      <nav class="pb-mainnav laptop-only" aria-label="Primary">
+      <nav class="pb-mainnav" aria-label="Primary">
         <button *ngFor="let item of mainNav" type="button"
                 class="pb-mainnav-item" [class.active]="activeNavTab() === item.id"
                 (click)="setNavTab(item.id)">{{ item.label }}</button>
@@ -24,7 +83,7 @@
                 [attr.aria-expanded]="searchOpen()" aria-label="Search matches">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"
                stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <span class="laptop-only">Search</span>
+          <span>Search</span>
         </button>
 
         <button type="button" class="pb-deposit-btn" *ngIf="isAuthenticated" (click)="openDeposit()">DEPOSIT</button>
@@ -65,11 +124,11 @@
     <!-- search drawer -->
     <div class="pb-searchbar" *ngIf="searchOpen()">
       <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
-             placeholder="Search teams, leagues or countries…" class="pb-search-input" autofocus>
+             placeholder="Search teams, leagues or countries…" class="pb-search-input">
       <button type="button" class="pb-search-clear" (click)="toggleSearch()">Close</button>
     </div>
 
-    <!-- ══ COLOURED GAME RAIL ═════════════════════════════════════════════ -->
+    <!-- coloured game rail -->
     <div class="pb-rail-wrap">
       <div class="pb-rail" role="list">
         <button *ngFor="let tile of gameTiles" type="button" role="listitem"
@@ -80,6 +139,10 @@
           <span class="pb-tile-label">{{ tile.label }}</span>
         </button>
       </div>
+      <button type="button" class="pb-rail-more phone-only" (click)="toggleMobileMenu()" aria-label="More games">
+        <span class="pb-rail-dots">⋮</span>
+        <span class="pb-rail-more-lbl">More</span>
+      </button>
     </div>
   </header>
 
@@ -103,6 +166,15 @@
         <span class="pb-chevron">›</span>
       </div>
 
+      <div class="pb-drawer-tiles">
+        <button *ngFor="let tile of gameTiles" type="button" class="pb-drawer-tile"
+                (click)="openGameTile(tile)"
+                [style.background]="'linear-gradient(150deg,' + tile.from + ',' + tile.to + ')'">
+          <img [src]="tile.icon" alt="" loading="lazy">
+          <span>{{ tile.label }}</span>
+        </button>
+      </div>
+
       <nav class="pb-drawer-nav" aria-label="Sections">
         <button *ngFor="let item of mainNav" type="button"
                 [class.active]="activeNavTab() === item.id" (click)="setNavTab(item.id)">
@@ -119,10 +191,10 @@
     </aside>
   </div>
 
-  <!-- ══ THREE COLUMN BODY ═════════════════════════════════════════════════ -->
+  <!-- ══ BODY ══════════════════════════════════════════════════════════════ -->
   <div class="pb-body">
 
-    <!-- ── LEFT SIDEBAR ─────────────────────────────────────────────────── -->
+    <!-- ── LEFT SIDEBAR (desktop) ───────────────────────────────────────── -->
     <aside class="pb-left laptop-only" aria-label="Leagues">
       <div class="pb-quick-grid">
         <button *ngFor="let tile of gameTiles.slice(1, 7)" type="button" class="pb-quick-tile"
@@ -203,8 +275,16 @@
         <span class="pb-aviator-play">Play Now ›</span>
       </button>
 
-      <!-- casino / crash games -->
+      <!-- casino: content tabs + chips + cards -->
       <section class="pb-card">
+        <div class="pb-content-tabs">
+          <button *ngFor="let tab of contentTabs" type="button"
+                  class="pb-content-tab" [class.active]="activeContentTab() === tab.id"
+                  (click)="setContentTab(tab.id)">
+            <span class="pb-flame" *ngIf="tab.flame">🔥</span>{{ tab.label }}
+          </button>
+        </div>
+
         <div class="pb-card-tabs">
           <button *ngFor="let tab of casinoTabs" type="button"
                   class="pb-chip" [class.active]="activeCasinoTab() === tab.id"
@@ -226,6 +306,22 @@
         </div>
       </section>
 
+      <!-- app install strip -->
+      <div class="pb-appstrip">
+        <span>Install Pakabet on your phone, get <strong>KSh 50</strong> bonus!</span>
+        <button type="button" (click)="promoteApp()">Add to Home</button>
+      </div>
+
+      <!-- quick sports strip -->
+      <div class="pb-quickstrip">
+        <button *ngFor="let item of quickSports" type="button" class="pb-quickstrip-item"
+                (click)="openQuickSport(item)">
+          <img [src]="item.icon" alt="" loading="lazy">
+          <span class="pb-quickstrip-lbl">{{ item.label }}</span>
+          <span class="pb-quickstrip-count">{{ item.count }}</span>
+        </button>
+      </div>
+
       <!-- jackpot strip -->
       <button type="button" class="pb-jackpot" (click)="setNavTab('jackpots')">
         <span class="pb-jackpot-label">Aviator Weekly</span>
@@ -235,36 +331,61 @@
 
       <!-- sports board -->
       <section class="pb-card">
-        <div class="pb-board-head">
-          <div class="pb-sport-tabs">
-            <button *ngFor="let sport of sportsTabs" type="button"
-                    class="pb-sport-tab" [class.active]="selectedSport() === sport.id"
-                    (click)="selectSport(sport.id)">
-              {{ sport.name }}<span class="pb-sport-count">{{ sport.count }}</span>
-            </button>
-          </div>
+        <div class="pb-sports-head">
+          <h2 class="pb-sports-title">Sports</h2>
+          <button type="button" class="pb-sports-link" (click)="filterByLeague('Premier League')">
+            EPL<span class="pb-dot-red"></span>
+          </button>
+          <button type="button" class="pb-sports-link" (click)="setNavTab('pakaleague')">
+            PakaLeague<span class="pb-dot-red"></span>
+          </button>
+          <button type="button" class="pb-refresh" (click)="refreshBoard()" aria-label="Refresh odds">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 11A8 8 0 0 0 6.3 5.7L4 8"/><path d="M4 4v4h4"/>
+              <path d="M4 13a8 8 0 0 0 13.7 5.3L20 16"/><path d="M20 20v-4h-4"/></svg>
+          </button>
+        </div>
 
-          <div class="pb-day-tabs">
-            <button *ngFor="let day of dayTabs" type="button"
-                    class="pb-day-tab" [class.active]="activeDay() === day.id"
-                    (click)="setDay(day.id)">{{ day.label }}</button>
-            <button type="button" class="pb-day-tab" [class.active]="activeFilter() === 'live'"
-                    (click)="setNavTab('live')">
-              <span class="pb-live-dot"></span>LIVE {{ liveCount() }}
-            </button>
-          </div>
+        <div class="pb-day-tabs">
+          <span class="pb-day-hrs">Hrs ⌄</span>
+          <button *ngFor="let day of dayTabs" type="button"
+                  class="pb-day-tab" [class.active]="activeDay() === day.id"
+                  (click)="setDay(day.id)">{{ day.label }}</button>
+          <button type="button" class="pb-day-tab" [class.active]="activeFilter() === 'live'"
+                  (click)="setNavTab('live')">
+            <span class="pb-live-dot"></span>LIVE {{ liveCount() }}
+          </button>
+        </div>
+
+        <div class="pb-sport-tabs">
+          <button *ngFor="let sport of sportsTabs" type="button"
+                  class="pb-sport-tab" [class.active]="selectedSport() === sport.id"
+                  (click)="selectSport(sport.id)">
+            {{ sport.name }}<span class="pb-sport-count">{{ sport.count }}</span>
+          </button>
         </div>
 
         <div class="pb-board-controls">
-          <button type="button" class="pb-control" [class.on]="sortByLeague()" (click)="toggleSort()">
-            {{ sortByLeague() ? 'Sorted by league' : 'Sort by league' }}
-          </button>
-          <div class="pb-market-tabs">
-            <button *ngFor="let market of marketTabs" type="button"
-                    class="pb-market-tab" [class.active]="marketType() === market.id"
-                    (click)="setMarket(market.id)">{{ market.label }}</button>
+          <div class="pb-select-wrap">
+            <select class="pb-select" [ngModel]="sortByLeague() ? 'league' : 'time'"
+                    (ngModelChange)="sortByLeague.set($event === 'league')">
+              <option value="time">Sort by time</option>
+              <option value="league">Sort by league</option>
+            </select>
           </div>
-          <button type="button" class="pb-control pb-clear" (click)="clearFilters()">Clear filters</button>
+          <div class="pb-select-wrap">
+            <select class="pb-select" [ngModel]="marketType()" (ngModelChange)="setMarket($event)">
+              <option *ngFor="let market of marketTabs" [value]="market.id">{{ market.label }}</option>
+            </select>
+          </div>
+          <button type="button" class="pb-2up" [class.on]="show2upTip()" (click)="show2upTip.set(!show2upTip())">2up</button>
+          <button type="button" class="pb-control pb-clear" (click)="clearFilters()">Clear</button>
+        </div>
+
+        <div class="pb-2up-tip" *ngIf="show2upTip()">
+          Win if your chosen team leads by 2 goals at any point, regardless of the final outcome.
+          <button type="button" (click)="show2upTip.set(false)">Got it</button>
         </div>
 
         <div class="pb-active-filters" *ngIf="activeLeague() || searchQuery() || activeFilter() !== 'all'">
@@ -290,31 +411,34 @@
         </div>
 
         <div class="pb-match-list">
-          <article class="pb-match" *ngFor="let game of visibleMatches()">
-            <div class="pb-match-info">
-              <div class="pb-match-meta">
-                <span class="pb-match-league">{{ game.league }}</span>
-                <span class="pb-match-time" [class.live]="game.state === 'live'">
-                  <span class="pb-live-dot" *ngIf="game.state === 'live'"></span>{{ game.time }}
-                </span>
-              </div>
-              <div class="pb-match-teams">
-                <span>{{ game.home }}</span>
-                <span class="pb-vs">v</span>
-                <span>{{ game.away }}</span>
-              </div>
-              <span class="pb-match-markets">+{{ game.marketsCount }} markets</span>
-            </div>
+          <ng-container *ngFor="let group of groupedMatches()">
+            <div class="pb-group-head">{{ group.label }} ({{ group.matches.length }})</div>
 
-            <div class="pb-match-odds" [class.two-col]="marketColumns().length === 2">
-              <button *ngFor="let column of marketColumns()" type="button" class="pb-odd"
-                      [class.selected]="isSelected(game.id, column.key)"
-                      (click)="toggleSelection(game, column.key)">
-                <span class="pb-odd-label">{{ column.label }}</span>
-                <strong class="pb-odd-value">{{ oddsFor(game, column.key) | number:'1.2-2' }}</strong>
-              </button>
-            </div>
-          </article>
+            <article class="pb-match" *ngFor="let game of group.matches">
+              <div class="pb-match-info">
+                <div class="pb-match-meta">
+                  <span class="pb-match-time" [class.live]="game.state === 'live'">
+                    <span class="pb-live-dot" *ngIf="game.state === 'live'"></span>{{ game.time }}
+                  </span>
+                  <span class="pb-match-markets">+{{ game.marketsCount }} markets</span>
+                </div>
+                <div class="pb-match-teams">
+                  <span>{{ game.home }}</span>
+                  <span class="pb-vs">v</span>
+                  <span>{{ game.away }}</span>
+                </div>
+              </div>
+
+              <div class="pb-match-odds" [class.two-col]="marketColumns().length === 2">
+                <button *ngFor="let column of marketColumns()" type="button" class="pb-odd"
+                        [class.selected]="isSelected(game.id, column.key)"
+                        (click)="toggleSelection(game, column.key)">
+                  <span class="pb-odd-label">{{ column.label }}</span>
+                  <strong class="pb-odd-value">{{ oddsFor(game, column.key) | number:'1.2-2' }}</strong>
+                </button>
+              </div>
+            </article>
+          </ng-container>
 
           <div class="pb-empty" *ngIf="!visibleMatches().length">
             <strong>No matches match these filters</strong>
@@ -353,7 +477,7 @@
       </footer>
     </main>
 
-    <!-- ── RIGHT BETSLIP ────────────────────────────────────────────────── -->
+    <!-- ── RIGHT BETSLIP (desktop) ──────────────────────────────────────── -->
     <aside class="pb-right laptop-only" aria-label="Bet slip">
       <div class="pb-slip">
         <div class="pb-slip-tabs">
@@ -362,61 +486,76 @@
           </button>
           <button type="button" (click)="openMyBetsModal()">My bets</button>
         </div>
-
-        <div class="pb-slip-mode">
-          <button type="button" [class.on]="slipMode() === 'real'" (click)="slipMode.set('real')">REAL</button>
-          <button type="button" [class.on]="slipMode() === 'simulate'" (click)="slipMode.set('simulate')">SIMULATE</button>
-          <button type="button" class="pb-slip-remove" (click)="clearSlip()" *ngIf="selections().length">
-            × Remove all
-          </button>
-        </div>
-
-        <div class="pb-slip-body">
-          <div class="pb-slip-empty" *ngIf="!selections().length">
-            <strong>No selections</strong>
-            <p>Add match selections by clicking the odds on any match.</p>
-          </div>
-
-          <div *ngIf="selections().length">
-            <article class="pb-slip-item" *ngFor="let item of selections()">
-              <button type="button" class="pb-slip-x" (click)="removeSelection(item)" aria-label="Remove">×</button>
-              <div class="pb-slip-match">{{ item.matchLabel }}</div>
-              <div class="pb-slip-pick">
-                <span><small>{{ item.marketLabel }}</small>{{ item.outcomeLabel }}</span>
-                <strong>{{ item.odds | number:'1.2-2' }}</strong>
-              </div>
-            </article>
-
-            <label class="pb-stake">
-              <span>Stake</span>
-              <div class="pb-stake-box">
-                <small>KES</small>
-                <input type="number" min="10" [(ngModel)]="stake">
-              </div>
-            </label>
-
-            <div class="pb-slip-totals">
-              <div><span>Total odds</span><strong>{{ combinedOdds() | number:'1.2-2' }}</strong></div>
-              <div><span>Possible win</span><strong class="pb-win">KES {{ potentialReturn() | number:'1.2-2' }}</strong></div>
-            </div>
-
-            <button type="button" class="pb-place-btn" (click)="placeBet()">
-              {{ slipMode() === 'simulate' ? 'Simulate bet' : 'Place bet' }}
-            </button>
-            <button type="button" class="pb-share-btn" (click)="shareSlip()">Share booking code</button>
-          </div>
-        </div>
-
-        <div class="pb-booking">
-          <p>Have a booking code? Enter it here.</p>
-          <div class="pb-booking-row">
-            <input type="text" [(ngModel)]="betslipCode" placeholder="Booking code">
-            <button type="button" (click)="loadBetslipByCode()">Load</button>
-          </div>
-        </div>
+        <ng-container *ngTemplateOutlet="slipBody"></ng-container>
       </div>
     </aside>
   </div>
+
+  <!-- ══ MOBILE BETSLIP SHEET ══════════════════════════════════════════════ -->
+  <div class="pb-sheet-overlay phone-only" *ngIf="betslipSheetOpen()" (click)="betslipSheetOpen.set(false)">
+    <section class="pb-sheet" (click)="$event.stopPropagation()" role="dialog" aria-label="Bet slip">
+      <div class="pb-sheet-head">
+        <strong>Betslip ({{ selections().length }})</strong>
+        <button type="button" (click)="betslipSheetOpen.set(false)" aria-label="Close">&times;</button>
+      </div>
+      <div class="pb-slip">
+        <ng-container *ngTemplateOutlet="slipBody"></ng-container>
+      </div>
+    </section>
+  </div>
+
+  <!-- shared slip body -->
+  <ng-template #slipBody>
+    <div class="pb-slip-mode">
+      <button type="button" [class.on]="slipMode() === 'real'" (click)="slipMode.set('real')">REAL</button>
+      <button type="button" [class.on]="slipMode() === 'simulate'" (click)="slipMode.set('simulate')">SIMULATE</button>
+      <button type="button" class="pb-slip-remove" (click)="clearSlip()" *ngIf="selections().length">× Remove all</button>
+    </div>
+
+    <div class="pb-slip-body">
+      <div class="pb-slip-empty" *ngIf="!selections().length">
+        <strong>No selections</strong>
+        <p>Add match selections by clicking the odds on any match.</p>
+      </div>
+
+      <div *ngIf="selections().length">
+        <article class="pb-slip-item" *ngFor="let item of selections()">
+          <button type="button" class="pb-slip-x" (click)="removeSelection(item)" aria-label="Remove">×</button>
+          <div class="pb-slip-match">{{ item.matchLabel }}</div>
+          <div class="pb-slip-pick">
+            <span><small>{{ item.marketLabel }}</small>{{ item.outcomeLabel }}</span>
+            <strong>{{ item.odds | number:'1.2-2' }}</strong>
+          </div>
+        </article>
+
+        <label class="pb-stake">
+          <span>Stake</span>
+          <div class="pb-stake-box">
+            <small>KES</small>
+            <input type="number" min="10" [(ngModel)]="stake">
+          </div>
+        </label>
+
+        <div class="pb-slip-totals">
+          <div><span>Total odds</span><strong>{{ combinedOdds() | number:'1.2-2' }}</strong></div>
+          <div><span>Possible win</span><strong class="pb-win">KES {{ potentialReturn() | number:'1.2-2' }}</strong></div>
+        </div>
+
+        <button type="button" class="pb-place-btn" (click)="placeBet()">
+          {{ slipMode() === 'simulate' ? 'Simulate bet' : 'Place bet' }}
+        </button>
+        <button type="button" class="pb-share-btn" (click)="shareSlip()">Share booking code</button>
+      </div>
+    </div>
+
+    <div class="pb-booking">
+      <p>Have a booking code? Enter it here.</p>
+      <div class="pb-booking-row">
+        <input type="text" [(ngModel)]="betslipCode" placeholder="Booking code">
+        <button type="button" (click)="loadBetslipByCode()">Load</button>
+      </div>
+    </div>
+  </ng-template>
 
   <!-- ══ TOAST ═════════════════════════════════════════════════════════════ -->
   <div class="pb-toast" *ngIf="toast()" role="status">{{ toast() }}</div>
@@ -468,22 +607,25 @@
     </section>
   </div>
 
-  <!-- ══ BOTTOM NAV (MOBILE) ═══════════════════════════════════════════════ -->
+  <!-- ══ BOTTOM NAV ════════════════════════════════════════════════════════ -->
   <nav class="pb-bottomnav" aria-label="Quick navigation">
     <button type="button" [class.active]="activeNavTab() === 'sports'" (click)="setNavTab('sports')">
       <img class="pb-bn-icon" src="/assets/icons/games/home.svg" alt=""><span>Home</span>
     </button>
     <button type="button" [class.active]="activeNavTab() === 'live'" (click)="setNavTab('live')">
-      <img class="pb-bn-icon" src="/assets/icons/games/live.svg" alt=""><span>Live</span>
+      <img class="pb-bn-icon" src="/assets/icons/games/soccer.svg" alt=""><span>Sports</span>
     </button>
-    <button type="button" class="pb-bn-aviator" (click)="goToAviator()">
-      <span class="pb-bn-ring"><img src="/assets/images/bets-aviator-button.jpg" alt=""></span><span>Aviator</span>
+
+    <button type="button" class="pb-bn-slip" (click)="betslipSheetOpen.set(true)" aria-label="Open betslip">
+      <span class="pb-bn-slip-badge">{{ selections().length }}</span>
+      <span>Betslip</span>
+    </button>
+
+    <button type="button" (click)="setContentTab('crash')">
+      <img class="pb-bn-icon" src="/assets/icons/games/cards.svg" alt=""><span>Casino</span>
     </button>
     <button type="button" (click)="openMyBetsModal()">
-      <img class="pb-bn-icon" src="/assets/icons/games/cards.svg" alt=""><span>My Bets</span>
-    </button>
-    <button type="button" (click)="openAccountModal()">
-      <img class="pb-bn-icon" src="/assets/icons/games/trophy.svg" alt=""><span>Account</span>
+      <img class="pb-bn-icon" src="/assets/icons/games/trophy.svg" alt=""><span>My Bets</span>
     </button>
   </nav>
 </div>

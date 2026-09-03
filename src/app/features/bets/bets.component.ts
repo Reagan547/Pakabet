@@ -94,6 +94,10 @@ export class BetsComponent implements OnInit, OnDestroy {
   readonly leaguesOpen = signal(true);
   readonly countriesOpen = signal(false);
   readonly toast = signal('');
+  readonly activeContentTab = signal('crash');
+  readonly betslipSheetOpen = signal(false);
+  readonly show2upTip = signal(false);
+  readonly railMoreOpen = signal(false);
 
   stake = 20;
   betslipCode = '';
@@ -134,6 +138,25 @@ export class BetsComponent implements OnInit, OnDestroy {
   ];
 
   // ── Casino / crash game cards ─────────────────────────────────────────────
+  // Mobile content tabs sitting above the casino chips.
+  readonly contentTabs = [
+    { id: 'crash', label: 'Crash', flame: true },
+    { id: 'betbuilder', label: 'BetBuilder', flame: false },
+    { id: 'pakaleague', label: 'PakaLeague', flame: false },
+    { id: 'polymarket', label: 'PakaPoly', flame: false }
+  ];
+
+  // Quick-access strip under the app banner.
+  readonly quickSports = [
+    { id: 'live', label: 'Live Inplay', count: 9, icon: '/assets/icons/games/live-red.svg' },
+    { id: 'soccer', label: 'Soccer', count: 77, icon: '/assets/icons/games/soccer.svg' },
+    { id: 'epl', label: 'Premier League', count: 20, icon: '/assets/icons/games/trophy.svg', league: 'Premier League' },
+    { id: 'laliga', label: 'LaLiga', count: 21, icon: '/assets/icons/games/trophy.svg', league: 'LaLiga' },
+    { id: 'seriea', label: 'Serie A', count: 20, icon: '/assets/icons/games/trophy.svg', league: 'Serie A' },
+    { id: 'bundesliga', label: 'Bundesliga', count: 18, icon: '/assets/icons/games/trophy.svg', league: 'Bundesliga' },
+    { id: 'basketball', label: 'Basketball', count: 3, icon: '/assets/icons/games/basketball.svg' }
+  ];
+
   readonly casinoTabs = [
     { id: 'crash', label: 'Crash' },
     { id: 'slots', label: 'Slots' },
@@ -289,6 +312,17 @@ export class BetsComponent implements OnInit, OnDestroy {
   });
 
   readonly liveCount = computed(() => this.matchesList().filter(m => m.state === 'live').length);
+
+  /** Matches grouped under a "Country / League (n)" heading, as the phone board shows them. */
+  readonly groupedMatches = computed(() => {
+    const groups = new Map<string, { label: string; matches: FootballMatch[] }>();
+    for (const match of this.visibleMatches()) {
+      const label = `${match.country} / ${match.league}`;
+      if (!groups.has(label)) groups.set(label, { label, matches: [] });
+      groups.get(label)!.matches.push(match);
+    }
+    return Array.from(groups.values());
+  });
 
   readonly combinedOdds = computed(() => Number(this.selections()
     .reduce((total, selection) => total * selection.odds, 1)
@@ -580,6 +614,39 @@ export class BetsComponent implements OnInit, OnDestroy {
     if (stake > this.userBalance()) { this.notify('Insufficient balance — deposit to continue.'); return; }
     this.notify(`Bet placed: KES ${stake.toFixed(2)} at ${this.combinedOdds()} odds.`);
     this.selections.set([]);
+  }
+
+  /** Nudges the live prices immediately instead of waiting for the next tick. */
+  refreshBoard(): void {
+    this.matchesList.update(list => list.map(match => {
+      if (match.state !== 'live') return match;
+      return {
+        ...match,
+        homeOdds: Math.max(1.05, this.round(match.homeOdds + (Math.random() - 0.5) * 0.2)),
+        drawOdds: Math.max(1.05, this.round(match.drawOdds + (Math.random() - 0.5) * 0.14)),
+        awayOdds: Math.max(1.05, this.round(match.awayOdds + (Math.random() - 0.5) * 0.2))
+      };
+    }));
+    this.notify('Odds refreshed.');
+  }
+
+  setContentTab(tab: string): void {
+    this.activeContentTab.set(tab);
+    if (tab === 'crash') this.activeCasinoTab.set('crash');
+    else if (tab === 'pakaleague') this.activeCasinoTab.set('exclusive');
+    else if (tab === 'polymarket') this.activeCasinoTab.set('virtuals');
+    else this.notify('BetBuilder opens with the next fixture list.');
+  }
+
+  openQuickSport(item: { id: string; label: string; league?: string }): void {
+    if (item.id === 'live') { this.setNavTab('live'); return; }
+    if (item.league) { this.activeLeague.set(item.league); this.activeDay.set('all'); this.notify(`${item.label} fixtures loaded.`); return; }
+    this.selectSport(item.id);
+    this.notify(`${item.label} board loaded.`);
+  }
+
+  promoteApp(): void {
+    this.notify('Add Pakabet to your home screen from your browser menu to claim the bonus.');
   }
 
   goToLogin(): void { this.router.navigate(['/login']); }

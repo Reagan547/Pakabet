@@ -30,7 +30,12 @@
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 input { font-family: inherit; }
 
-.laptop-only { display: none; }
+/* Visibility utilities. The mobile hide needs !important because component
+   rules like .pb-header-inner set their own display at equal specificity and
+   would otherwise win on source order. */
+@media (max-width: 1023px) {
+  .laptop-only { display: none !important; }
+}
 @media (min-width: 1024px) {
   .laptop-only { display: flex; }
   .phone-only { display: none !important; }
@@ -607,29 +612,6 @@ input { font-family: inherit; }
   box-shadow: 0 4px 12px rgba(10, 143, 60, .5);
 }
 
-/* ── Phone header compaction ─────────────────────────────────────────────── */
-@media (max-width: 1023px) {
-  .pb-header-inner { gap: 8px; padding: 8px 10px; }
-  .pb-brand-word { font-size: 17px; }
-  .pb-brand-mark { width: 30px; height: 30px; }
-  .pb-header-right { gap: 6px; }
-  .pb-search-btn span { display: none; }
-  .pb-deposit-btn { padding: 8px 13px; font-size: 12px; }
-  .pb-login, .pb-signup { padding: 7px 9px; font-size: 11px; }
-  .pb-balance strong { font-size: 12.5px; }
-  .pb-balance small { font-size: 9.5px; }
-  .pb-promo-slide { flex-basis: 88%; min-height: 118px; padding: 15px 16px; }
-  .pb-promo-title { font-size: 19px; }
-  .pb-match { gap: 8px; padding: 10px; }
-  .pb-odd { width: 52px; padding: 6px 3px; }
-  .pb-oh-cols span { width: 52px; }
-  .pb-match-teams { font-size: 12.5px; }
-}
-@media (max-width: 400px) {
-  .pb-brand-word { font-size: 15px; }
-  .pb-odd { width: 46px; }
-  .pb-oh-cols span { width: 46px; }
-}
 
 /* ── Aviator feature strip ───────────────────────────────────────────────── */
 .pb-aviator-strip {
@@ -683,4 +665,254 @@ input { font-family: inherit; }
   position: absolute; top: 10px; right: 10px;
   width: 40px; height: 40px; object-fit: contain; border-radius: 7px;
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, .5));
+}
+
+/* ═══ PHONE LAYOUT ═══════════════════════════════════════════════════════════
+   Matches the Kenyan-sportsbook phone arrangement: paybill strip, five-slot
+   header, labelled tile rail with a More button, then the board.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* M-Pesa deposit strip */
+.pb-paybill {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 8px 14px; background: #3b4750; color: #fff;
+  font-size: 12.5px; text-align: left;
+}
+.pb-paybill-text strong { font-weight: 900; letter-spacing: .3px; }
+.pb-paybill-cta { color: #cfd8de; font-size: 12px; white-space: nowrap; }
+
+/* Five-slot phone header */
+.pb-mhead {
+  position: relative; z-index: 3;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  align-items: center; padding: 6px 4px 8px;
+}
+.pb-mhead-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: #fff; padding: 2px 0; min-width: 0;
+}
+.pb-mhead-ico { display: grid; place-items: center; height: 24px; }
+.pb-mhead-lbl {
+  font-size: 10px; font-weight: 600; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pb-mhead-logo { display: grid; place-items: center; }
+.pb-mhead-logo img {
+  width: 48px; height: 48px; border-radius: 11px; object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+}
+.pb-profile-menu-m { right: 6px; top: calc(100% - 2px); }
+
+/* Rail: labels under icons, with a trailing More button */
+@media (max-width: 1023px) {
+  .pb-rail-wrap { display: flex; align-items: stretch; }
+  .pb-rail { flex: 1; min-width: 0; gap: 4px; padding: 6px 8px 8px; }
+  .pb-tile {
+    width: 60px; height: 58px; border-radius: 9px; gap: 3px;
+    background: none !important; box-shadow: none;
+  }
+  .pb-tile-icon {
+    width: 34px; height: 34px; padding: 5px; border-radius: 9px;
+    background: rgba(255, 255, 255, .12);
+  }
+  .pb-tile-label { font-size: 9px; font-weight: 600; }
+  .pb-tile-badge { top: -2px; right: 6px; font-size: 7px; }
+  .pb-rail-more {
+    flex: 0 0 auto; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+    width: 44px; color: #fff;
+    background: var(--pb-green-dark); border-left: 1px solid rgba(255, 255, 255, .16);
+  }
+  .pb-rail-dots { font-size: 20px; line-height: 1; }
+  .pb-rail-more-lbl { font-size: 9px; font-weight: 700; }
+}
+
+/* Content tabs above the casino chips */
+.pb-content-tabs {
+  display: flex; gap: 2px; padding: 4px 8px 0;
+  border-bottom: 1px solid var(--pb-line); overflow-x: auto; scrollbar-width: none;
+}
+.pb-content-tabs::-webkit-scrollbar { display: none; }
+.pb-content-tab {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 4px;
+  padding: 11px 12px; font-size: 14px; font-weight: 700; color: var(--pb-ink-soft);
+  border-bottom: 3px solid transparent; white-space: nowrap;
+}
+.pb-content-tab.active { color: var(--pb-green); border-bottom-color: var(--pb-green); font-weight: 800; }
+.pb-flame { font-size: 13px; }
+
+/* Yellow app strip */
+.pb-appstrip {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 11px 14px; border-radius: var(--pb-radius);
+  background: var(--pb-yellow); color: #1a1a1a; font-size: 13px; font-weight: 700;
+}
+.pb-appstrip strong { font-weight: 900; }
+.pb-appstrip button {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: 6px;
+  background: var(--pb-red); color: #fff; font-size: 12px; font-weight: 800;
+}
+
+/* Quick sports strip */
+.pb-quickstrip {
+  display: flex; gap: 8px; padding: 10px; overflow-x: auto;
+  background: var(--pb-card); border-radius: var(--pb-radius); scrollbar-width: none;
+}
+.pb-quickstrip::-webkit-scrollbar { display: none; }
+.pb-quickstrip-item {
+  position: relative; flex: 0 0 auto; width: 92px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 10px 6px; border: 1px solid var(--pb-line); border-radius: 9px;
+}
+.pb-quickstrip-item:hover { border-color: var(--pb-green); }
+.pb-quickstrip-item img { width: 24px; height: 24px; object-fit: contain; }
+.pb-quickstrip-lbl {
+  font-size: 10.5px; font-weight: 700; text-align: center; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+}
+.pb-quickstrip-count {
+  position: absolute; top: 5px; right: 7px;
+  font-size: 10px; font-weight: 800; color: var(--pb-ink-soft);
+}
+
+/* Sports section header */
+.pb-sports-head {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 12px 8px; border-bottom: 1px solid var(--pb-line);
+}
+.pb-sports-title { margin: 0; font-size: 19px; font-weight: 900; color: var(--pb-green); }
+.pb-sports-link {
+  position: relative; font-size: 14px; font-weight: 700; color: var(--pb-ink-soft);
+  padding-right: 8px;
+}
+.pb-dot-red {
+  position: absolute; top: -1px; right: 0;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--pb-red);
+}
+.pb-refresh {
+  margin-left: auto; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid var(--pb-line); color: var(--pb-green); background: #fff;
+}
+.pb-refresh:active { transform: rotate(90deg); transition: transform .2s; }
+
+.pb-day-hrs {
+  flex: 0 0 auto; font-size: 11.5px; font-weight: 700;
+  color: var(--pb-ink-soft); padding: 6px 4px;
+}
+
+/* Select-styled board controls */
+.pb-select-wrap { position: relative; flex: 1 1 130px; min-width: 0; }
+.pb-select {
+  width: 100%; appearance: none; padding: 8px 26px 8px 10px;
+  border: 1px solid var(--pb-line); border-radius: 6px; background: #fff;
+  font-family: inherit; font-size: 12px; font-weight: 700; color: var(--pb-ink-soft);
+  outline: none; cursor: pointer;
+}
+.pb-select-wrap::after {
+  content: "\2304"; position: absolute; right: 9px; top: 3px;
+  color: var(--pb-ink-soft); pointer-events: none; font-size: 13px;
+}
+.pb-2up {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: 6px;
+  background: #2b3a47; color: #fff; font-size: 12px; font-weight: 800;
+}
+.pb-2up.on { background: var(--pb-green); }
+.pb-2up-tip {
+  margin: 8px 12px 0; padding: 12px 14px; border-radius: 8px;
+  background: #2b3a47; color: #fff; font-size: 12.5px; line-height: 1.5;
+}
+.pb-2up-tip button {
+  display: block; margin-top: 10px; padding: 7px 16px; border-radius: 6px;
+  background: var(--pb-yellow); color: #1a1a1a; font-size: 12px; font-weight: 900;
+}
+
+/* League group heading */
+.pb-group-head {
+  padding: 8px 12px; background: #f4f6f9;
+  border-top: 1px solid var(--pb-line);
+  font-size: 11.5px; font-weight: 800; color: var(--pb-ink-soft);
+}
+
+/* Mobile betslip sheet */
+.pb-sheet-overlay {
+  position: fixed; inset: 0; z-index: 240;
+  background: rgba(10, 18, 24, .55); display: flex; align-items: flex-end;
+}
+.pb-sheet {
+  width: 100%; max-height: 84vh; overflow-y: auto;
+  background: var(--pb-card); border-radius: 16px 16px 0 0;
+  animation: pb-sheet-up .22s ease;
+}
+@keyframes pb-sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+.pb-sheet-head {
+  position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; background: var(--pb-green); color: #fff;
+}
+.pb-sheet-head strong { font-size: 15px; font-weight: 900; }
+.pb-sheet-head button { color: #fff; font-size: 26px; line-height: 1; }
+
+/* Drawer tile grid */
+.pb-drawer-tiles {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 12px;
+}
+.pb-drawer-tile {
+  aspect-ratio: 1; border-radius: 9px; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+}
+.pb-drawer-tile img { width: 24px; height: 24px; object-fit: contain; }
+.pb-drawer-tile span { font-size: 8px; font-weight: 700; text-align: center; }
+
+/* Bottom nav betslip button */
+.pb-bn-slip {
+  color: var(--pb-yellow) !important;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.pb-bn-slip-badge {
+  display: grid; place-items: center; width: 40px; height: 40px;
+  margin-top: -18px; border-radius: 50%;
+  background: var(--pb-yellow); color: #1a1a1a;
+  font-size: 15px; font-weight: 900;
+  border: 3px solid #1f2a35; box-shadow: 0 4px 12px rgba(255, 212, 0, .45);
+}
+
+@media (max-width: 1023px) {
+  .pb-body { padding: 8px; gap: 8px; }
+  .pb-center { gap: 8px; }
+  .pb-promo-slide { flex-basis: 92%; min-height: 118px; padding: 15px 16px; }
+  .pb-promo-title { font-size: 19px; }
+  .pb-game-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 10px; }
+  .pb-match { gap: 8px; padding: 10px; }
+  .pb-odd { width: 54px; padding: 6px 3px; }
+  .pb-oh-cols span { width: 54px; }
+  .pb-match-teams { font-size: 12.5px; }
+  .pb-board-controls { gap: 6px; padding: 10px; }
+  .pb-clear { flex: 0 0 auto; }
+  .pb-footer { padding: 18px 16px; }
+}
+@media (max-width: 400px) {
+  .pb-odd { width: 47px; }
+  .pb-oh-cols span { width: 47px; }
+  .pb-mhead-lbl { font-size: 9px; }
+}
+
+/* Casino cards scroll sideways on phones, the way the game rows do on the
+   Kenyan books, instead of stacking into a tall two-column grid. */
+@media (max-width: 1023px) {
+  .pb-game-grid {
+    display: flex; grid-template-columns: none;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    gap: 8px; padding: 10px; scrollbar-width: none;
+  }
+  .pb-game-grid::-webkit-scrollbar { display: none; }
+  .pb-game-card {
+    flex: 0 0 auto; width: 132px; aspect-ratio: 1; scroll-snap-align: start;
+    padding: 10px;
+  }
+  .pb-game-name { font-size: 13px; }
+  .pb-game-tag {
+    font-size: 9.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .pb-game-icon { width: 32px; height: 32px; top: 8px; right: 8px; }
+  .pb-game-play { font-size: 10px; }
 }
