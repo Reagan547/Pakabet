@@ -76,7 +76,7 @@
                 class="pb-tile" (click)="openGameTile(tile)"
                 [style.background]="'linear-gradient(160deg,' + tile.from + ',' + tile.to + ')'">
           <span class="pb-tile-badge" *ngIf="tile.badge">{{ tile.badge }}</span>
-          <span class="pb-tile-glyph">{{ tile.glyph }}</span>
+          <img class="pb-tile-icon" [src]="tile.icon" alt="" loading="lazy">
           <span class="pb-tile-label">{{ tile.label }}</span>
         </button>
       </div>
@@ -128,7 +128,7 @@
         <button *ngFor="let tile of gameTiles.slice(1, 7)" type="button" class="pb-quick-tile"
                 (click)="openGameTile(tile)"
                 [style.background]="'linear-gradient(150deg,' + tile.from + ',' + tile.to + ')'">
-          <span class="pb-quick-glyph">{{ tile.glyph }}</span>
+          <img class="pb-quick-icon" [src]="tile.icon" alt="" loading="lazy">
           <span class="pb-quick-label">{{ tile.label }}</span>
         </button>
       </div>
@@ -186,6 +186,23 @@
         </div>
       </section>
 
+      <!-- aviator feature strip -->
+      <button type="button" class="pb-aviator-strip" (click)="goToAviator()">
+        <span class="pb-aviator-logo">
+          <img src="/assets/images/bets-aviator-button.jpg" alt="Aviator">
+        </span>
+        <span class="pb-aviator-copy">
+          <span class="pb-aviator-badges">
+            <span class="pb-live-dot"></span>
+            <span class="pb-aviator-fair">PROVABLY FAIR</span>
+            <span class="pb-aviator-x">UP TO 10,000x</span>
+          </span>
+          <strong class="pb-aviator-title">Aviator</strong>
+          <small class="pb-aviator-tag">Cash out before the plane flies away.</small>
+        </span>
+        <span class="pb-aviator-play">Play Now ›</span>
+      </button>
+
       <!-- casino / crash games -->
       <section class="pb-card">
         <div class="pb-card-tabs">
@@ -201,6 +218,7 @@
                   (click)="openCasinoGame(game)"
                   [style.background]="'linear-gradient(155deg,' + game.from + ',' + game.to + ')'">
             <span class="pb-game-live" *ngIf="game.live">LIVE</span>
+            <img class="pb-game-icon" [src]="game.icon" alt="" loading="lazy">
             <strong class="pb-game-name">{{ game.name }}</strong>
             <small class="pb-game-tag">{{ game.tagline }}</small>
             <span class="pb-game-play">Play ›</span>
@@ -453,19 +471,19 @@
   <!-- ══ BOTTOM NAV (MOBILE) ═══════════════════════════════════════════════ -->
   <nav class="pb-bottomnav" aria-label="Quick navigation">
     <button type="button" [class.active]="activeNavTab() === 'sports'" (click)="setNavTab('sports')">
-      <span class="pb-bn-glyph">⌂</span><span>Home</span>
+      <img class="pb-bn-icon" src="/assets/icons/games/home.svg" alt=""><span>Home</span>
     </button>
     <button type="button" [class.active]="activeNavTab() === 'live'" (click)="setNavTab('live')">
-      <span class="pb-bn-glyph">◉</span><span>Live</span>
+      <img class="pb-bn-icon" src="/assets/icons/games/live.svg" alt=""><span>Live</span>
     </button>
     <button type="button" class="pb-bn-aviator" (click)="goToAviator()">
-      <span class="pb-bn-ring">✈</span><span>Aviator</span>
+      <span class="pb-bn-ring"><img src="/assets/images/bets-aviator-button.jpg" alt=""></span><span>Aviator</span>
     </button>
     <button type="button" (click)="openMyBetsModal()">
-      <span class="pb-bn-glyph">▤</span><span>My Bets</span>
+      <img class="pb-bn-icon" src="/assets/icons/games/cards.svg" alt=""><span>My Bets</span>
     </button>
     <button type="button" (click)="openAccountModal()">
-      <span class="pb-bn-glyph">◍</span><span>Account</span>
+      <img class="pb-bn-icon" src="/assets/icons/games/trophy.svg" alt=""><span>Account</span>
     </button>
   </nav>
 </div>

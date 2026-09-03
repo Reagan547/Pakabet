@@ -146,13 +146,14 @@ import { AuthService } from '../../../core/services/auth.service';
           </div>
         </form>
 
-        <!-- FORGOT PASSWORD OTP FORM -->
+        <!-- FORGOT PASSWORD — DIRECT RESET (no OTP) -->
         <div *ngIf="activeTab === 'forgot'" class="auth-form">
-          
-          <!-- FORGOT STEP 1: REQUEST OTP -->
-          <form *ngIf="forgotStep === 1" (ngSubmit)="onSendOtp()">
-            <p class="step-info-text">Enter your phone number to receive a 6-digit OTP code to reset your password.</p>
-            
+          <form (ngSubmit)="onResetPassword()">
+            <p class="step-info-text">
+              Enter the phone number on your account and choose a new password.
+              You will be able to log in with it straight away.
+            </p>
+
             <div class="form-group">
               <div class="select-wrapper">
                 <select [(ngModel)]="selectedCountry" name="country" class="country-select">
@@ -169,55 +170,28 @@ import { AuthService } from '../../../core/services/auth.service';
             <div class="form-group margin-top-sm">
               <div class="phone-input-row">
                 <div class="country-code-box">{{ selectedCountry }}</div>
-                <input 
-                  type="text" 
-                  [(ngModel)]="phone" 
-                  name="phone" 
-                  class="phone-input" 
-                  placeholder="Phone Number (9 digits)" 
-                  required 
+                <input
+                  type="text"
+                  [(ngModel)]="phone"
+                  name="phone"
+                  class="phone-input"
+                  placeholder="Phone Number (9 digits)"
+                  required
                 />
               </div>
               <div class="field-hint">Enter your phone number without leading zeros</div>
             </div>
 
-            <button type="submit" class="submit-blue-btn" [disabled]="isSubmitting">
-              {{ isSubmitting ? 'SENDING OTP...' : 'SEND OTP CODE' }}
-            </button>
-          </form>
-
-          <!-- FORGOT STEP 2: VERIFY OTP & RESET PASSWORD -->
-          <form *ngIf="forgotStep === 2" (ngSubmit)="onVerifyAndReset()">
-            <div class="target-phone-banner">
-              <span>📲 OTP Sent To: <strong>{{ selectedCountry }}{{ phone }}</strong></span>
-              <a class="change-phone-link" (click)="forgotStep = 1">Change</a>
-            </div>
-
-            <!-- OTP CODE INPUT -->
-            <div class="form-group margin-top-sm">
-              <label class="input-label">Enter 6-Digit OTP</label>
-              <input 
-                type="text" 
-                [(ngModel)]="otpInput" 
-                name="otpInput" 
-                class="standard-input text-center font-bold letter-spacing-lg" 
-                placeholder="e.g. 849201" 
-                maxlength="6" 
-                required 
-              />
-            </div>
-
-            <!-- NEW PASSWORD -->
             <div class="form-group margin-top-sm">
               <label class="input-label">New Password</label>
               <div class="password-input-wrapper">
-                <input 
-                  [type]="showPassword ? 'text' : 'password'" 
-                  [(ngModel)]="newPassword" 
-                  name="newPassword" 
-                  class="password-input" 
-                  placeholder="New Password" 
-                  required 
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  [(ngModel)]="newPassword"
+                  name="newPassword"
+                  class="password-input"
+                  placeholder="New Password (min 6 characters)"
+                  required
                 />
                 <button type="button" class="password-toggle-btn" (click)="toggleShowPassword()">
                   {{ showPassword ? 'HIDE' : 'SHOW' }}
@@ -225,31 +199,25 @@ import { AuthService } from '../../../core/services/auth.service';
               </div>
             </div>
 
-            <!-- CONFIRM NEW PASSWORD -->
             <div class="form-group margin-top-sm">
               <label class="input-label">Confirm New Password</label>
               <div class="password-input-wrapper">
-                <input 
-                  [type]="showPassword ? 'text' : 'password'" 
-                  [(ngModel)]="confirmNewPassword" 
-                  name="confirmNewPassword" 
-                  class="password-input" 
-                  placeholder="Confirm New Password" 
-                  required 
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  [(ngModel)]="confirmNewPassword"
+                  name="confirmNewPassword"
+                  class="password-input"
+                  placeholder="Confirm New Password"
+                  required
                 />
               </div>
             </div>
 
             <button type="submit" class="submit-blue-btn" [disabled]="isSubmitting">
-              {{ isSubmitting ? 'RESETTING...' : 'VERIFY OTP & RESET PASSWORD' }}
+              {{ isSubmitting ? 'RESETTING...' : 'RESET PASSWORD' }}
             </button>
-
-            <div class="resend-row margin-top-sm text-center">
-              <a class="underlined-link" (click)="onSendOtp()">Didn't get OTP? Resend OTP</a>
-            </div>
           </form>
 
-          <!-- FORGOT FOOTER LINKS -->
           <div class="auth-links-footer">
             <div class="link-row">
               <span>Remembered password? </span>
@@ -257,8 +225,6 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
           </div>
         </div>
-
-      </div>
     </div>
   `,
   styles: [`
@@ -650,10 +616,7 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
   confirmPassword = '';
   showPassword = false;
 
-  // Forgot password OTP flow state
-  forgotStep = 1;
-  otpInput = '';
-  generatedOtp = '';
+  // Forgot password reset fields
   newPassword = '';
   confirmNewPassword = '';
 
@@ -727,8 +690,6 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
     this.activeTab = tab;
     this.errorMessage = null;
     this.successMessage = null;
-    this.forgotStep = 1;
-    this.otpInput = '';
     this.newPassword = '';
     this.confirmNewPassword = '';
   }
@@ -839,95 +800,54 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
     });
   }
 
-  // FORGOT PASSWORD OTP STEP 1: SEND OTP
-  onSendOtp() {
+  // FORGOT PASSWORD — DIRECT RESET
+  // There is no SMS gateway wired up, so the previous OTP step generated its
+  // code in the browser and never sent it anywhere; players were left waiting
+  // for a message that could not arrive. The backend reset endpoint has never
+  // required an OTP, so the form now posts the new password straight to it.
+  onResetPassword() {
     const trimmed = this.phone.trim();
+
     if (!trimmed) {
       this.errorMessage = 'Please enter your registered phone number.';
       return;
     }
-
-    const { fullPhone } = this.formatPhone(trimmed);
-
-    this.isSubmitting = true;
-    this.errorMessage = null;
-    this.successMessage = null;
-
-    // Simulate OTP sending to phone number
-    setTimeout(() => {
-      this.isSubmitting = false;
-      this.generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      this.successMessage = `📲 OTP sent to ${fullPhone}! (Demo OTP Code: ${this.generatedOtp})`;
-      this.forgotStep = 2;
-    }, 900);
-  }
-
-  // FORGOT PASSWORD OTP STEP 2: VERIFY OTP & RESET PASSWORD
-  onVerifyAndReset() {
-    const trimmed = this.phone.trim();
-    const { fullPhone, rawPhone } = this.formatPhone(trimmed);
-
-    if (!this.otpInput) {
-      this.errorMessage = 'Please enter the 6-digit OTP code sent to your phone.';
-      return;
-    }
-
-    if (this.otpInput.trim() !== this.generatedOtp && this.otpInput.trim() !== '123456') {
-      this.errorMessage = 'Invalid OTP code. Please enter the code sent to your phone number.';
-      return;
-    }
-
     if (!this.newPassword) {
       this.errorMessage = 'Please enter a new password.';
       return;
     }
-
     if (this.newPassword.length < 6) {
       this.errorMessage = 'New password must be at least 6 characters long.';
       return;
     }
-
     if (this.newPassword !== this.confirmNewPassword) {
       this.errorMessage = 'New passwords do not match.';
       return;
     }
 
+    const { fullPhone, rawPhone } = this.formatPhone(trimmed);
     this.isSubmitting = true;
     this.errorMessage = null;
+    this.successMessage = null;
 
-    this.authService.resetPassword({
-      phone_number: fullPhone,
-      new_password: this.newPassword
-    }).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.successMessage = '✅ Password reset successfully! Please log in with your new password.';
-        this.activeTab = 'login';
-        this.forgotStep = 1;
-        this.password = '';
-        this.newPassword = '';
-        this.confirmNewPassword = '';
-        this.otpInput = '';
-      },
+    const succeed = () => {
+      this.isSubmitting = false;
+      this.successMessage = 'Password reset successfully. Log in with your new password.';
+      this.activeTab = 'login';
+      this.password = '';
+      this.newPassword = '';
+      this.confirmNewPassword = '';
+    };
+
+    this.authService.resetPassword({ phone_number: fullPhone, new_password: this.newPassword }).subscribe({
+      next: succeed,
       error: () => {
-        // Fallback with raw phone format
-        this.authService.resetPassword({
-          phone_number: rawPhone,
-          new_password: this.newPassword
-        }).subscribe({
-          next: () => {
-            this.isSubmitting = false;
-            this.successMessage = '✅ Password reset successfully! Please log in with your new password.';
-            this.activeTab = 'login';
-            this.forgotStep = 1;
-            this.password = '';
-            this.newPassword = '';
-            this.confirmNewPassword = '';
-            this.otpInput = '';
-          },
+        // Older accounts were stored without the country code, so retry raw.
+        this.authService.resetPassword({ phone_number: rawPhone, new_password: this.newPassword }).subscribe({
+          next: succeed,
           error: (err) => {
             this.isSubmitting = false;
-            this.errorMessage = typeof err === 'string' ? err : 'Password reset failed. Account not found.';
+            this.errorMessage = typeof err === 'string' ? err : 'Password reset failed. That phone number is not registered.';
           }
         });
       }

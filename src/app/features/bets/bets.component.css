@@ -147,7 +147,8 @@ input { font-family: inherit; }
   transition: transform .12s;
 }
 .pb-tile:hover { transform: translateY(-2px); }
-.pb-tile-glyph { font-size: 20px; line-height: 1; }
+.pb-tile-icon { width: 30px; height: 30px; object-fit: contain; border-radius: 5px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
 .pb-tile-label { font-size: 8.5px; font-weight: 700; text-align: center; line-height: 1.1; padding: 0 2px; }
 .pb-tile-badge {
   position: absolute; top: -4px; right: -3px;
@@ -214,7 +215,8 @@ input { font-family: inherit; }
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
 }
-.pb-quick-glyph { font-size: 20px; }
+.pb-quick-icon { width: 30px; height: 30px; object-fit: contain; border-radius: 5px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
 .pb-quick-label { font-size: 8px; font-weight: 800; text-align: center; }
 
 .pb-panel { background: var(--pb-card); border-radius: var(--pb-radius); overflow: hidden; }
@@ -591,8 +593,9 @@ input { font-family: inherit; }
   color: #90a2b2; font-size: 9.5px; font-weight: 700;
 }
 .pb-bottomnav button.active { color: var(--pb-yellow); }
-.pb-bn-glyph { font-size: 17px; line-height: 1; }
+.pb-bn-icon { width: 21px; height: 21px; object-fit: contain; }
 .pb-bn-aviator { color: #fff !important; }
+.pb-bn-ring img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .pb-bn-ring {
   display: grid; place-items: center; width: 40px; height: 40px;
   margin-top: -18px; border-radius: 50%; font-size: 18px;
@@ -623,4 +626,58 @@ input { font-family: inherit; }
   .pb-brand-word { font-size: 15px; }
   .pb-odd { width: 46px; }
   .pb-oh-cols span { width: 46px; }
+}
+
+/* ── Aviator feature strip ───────────────────────────────────────────────── */
+.pb-aviator-strip {
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  padding: 14px 18px; border-radius: var(--pb-radius);
+  background: linear-gradient(100deg, #1a0409 0%, #3d0910 45%, #12060a 100%);
+  border: 1px solid rgba(232, 32, 42, .32);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .28);
+  color: #fff; position: relative; overflow: hidden;
+}
+.pb-aviator-strip::after {
+  content: ; position: absolute; right: -60px; top: -60px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 32, 42, .30), transparent 68%);
+}
+.pb-aviator-logo {
+  flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%;
+  display: grid; place-items: center; overflow: hidden;
+  border: 2px solid var(--pb-green-light);
+  box-shadow: 0 0 0 4px rgba(18, 160, 74, .18);
+  position: relative;
+}
+.pb-aviator-logo img { width: 100%; height: 100%; object-fit: cover; }
+.pb-aviator-copy { flex: 1; min-width: 0; position: relative; }
+.pb-aviator-badges { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+.pb-aviator-fair, .pb-aviator-x {
+  font-size: 9px; font-weight: 900; letter-spacing: .5px;
+  padding: 2px 6px; border-radius: 4px;
+}
+.pb-aviator-fair { background: rgba(18, 160, 74, .24); color: #6ef0a0; }
+.pb-aviator-x { background: rgba(255, 212, 0, .18); color: var(--pb-yellow); }
+.pb-aviator-title {
+  display: block; font-size: 21px; font-weight: 900; letter-spacing: -.4px;
+  color: #ff4d57; text-shadow: 0 0 14px rgba(232, 32, 42, .55);
+}
+.pb-aviator-tag { display: block; font-size: 11.5px; color: #d3b9bc; }
+.pb-aviator-play {
+  flex: 0 0 auto; position: relative;
+  background: var(--pb-yellow); color: #1a1a1a;
+  font-size: 12.5px; font-weight: 900; padding: 10px 16px; border-radius: 7px;
+}
+@media (max-width: 560px) {
+  .pb-aviator-strip { gap: 11px; padding: 12px 13px; flex-wrap: wrap; }
+  .pb-aviator-logo { width: 52px; height: 52px; }
+  .pb-aviator-title { font-size: 18px; }
+  .pb-aviator-play { width: 100%; text-align: center; }
+}
+
+/* Casino card artwork */
+.pb-game-icon {
+  position: absolute; top: 10px; right: 10px;
+  width: 40px; height: 40px; object-fit: contain; border-radius: 7px;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, .5));
 }

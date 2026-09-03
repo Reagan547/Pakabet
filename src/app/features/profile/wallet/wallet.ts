@@ -135,341 +135,344 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
     </div>
   `,
   styles: [`
+/* ═══════════════════════════════════════════════════════════════════════
+       Pakabet wallet — deep green + gold, matching the sportsbook chrome.
+       Styling only: the deposit and withdraw flows are untouched.
+       ═══════════════════════════════════════════════════════════════════════ */
+    :host {
+      --wk-green: #0a8f3c;
+      --wk-green-light: #16c25b;
+      --wk-green-deep: #04381c;
+      --wk-gold: #ffd400;
+      --wk-gold-deep: #c9a300;
+      --wk-red: #e8202a;
+      --wk-ink: #eaf3ec;
+      --wk-muted: #9dbfa8;
+      --wk-panel: rgba(8, 30, 18, .86);
+      --wk-line: rgba(22, 194, 91, .22);
+    }
+
     .wallet-page-wrapper {
-      height: 100vh;
-      background: #071524;
+      min-height: 100vh;
+      padding: 26px 16px 44px;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      overflow-y: auto;
-      padding: 32px 20px 48px;
-      box-sizing: border-box;
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      color: #ffffff;
+      background: radial-gradient(120% 90% at 50% -10%, #0d5c2c 0%, #062f18 42%, #010a05 100%);
+      font-family: Inter, 'Segoe UI', Roboto, system-ui, sans-serif;
+      color: var(--wk-ink);
     }
 
     .wallet-card-container {
-      width: 100%;
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 16px;
-      border: 1px solid #173047;
-      border-radius: 16px;
-      background: rgba(7, 21, 36, 0.72);
-      box-sizing: border-box;
+      width: min(460px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
-    /* TOP CURRENT BALANCE CARD */
+    /* ── Balance banner ───────────────────────────────────────────────── */
     .balance-banner-card {
-      background: #20364b;
-      border: 1px solid #2d4a64;
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      padding: 22px 22px 24px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--wk-green) 0%, var(--wk-green-deep) 100%);
+      border: 1px solid var(--wk-line);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .45);
+    }
+    .balance-banner-card::after {
+      content: '';
+      position: absolute;
+      right: -50px;
+      top: -50px;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 212, 0, .26), transparent 68%);
     }
     .lbl-title {
-      color: #ffffff;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 4px;
+      position: relative;
+      font-size: 11.5px;
+      font-weight: 900;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--wk-gold);
     }
     .lbl-sub {
-      color: #f4f7fb;
-      font-size: 0.9rem;
-      margin-bottom: 12px;
+      position: relative;
+      font-size: 12px;
+      color: rgba(234, 243, 236, .72);
+      margin-top: 2px;
     }
     .val-amount {
-      color: #e6eefc;
-      font-size: 2.2rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      line-height: 1.1;
+      position: relative;
+      margin-top: 10px;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: #fff;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, .35);
     }
 
-    /* SEGMENTED CONTROL ROW */
+    /* ── Segmented deposit / withdraw switch ──────────────────────────── */
     .segmented-control-row {
       display: flex;
-      gap: 8px;
-      padding: 4px;
-      background: #0d2039;
-      border: 1px solid #132b49;
+      gap: 6px;
+      padding: 5px;
       border-radius: 12px;
-      margin-bottom: 20px;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid var(--wk-line);
     }
     .seg-btn {
       flex: 1;
-      padding: 12px 16px;
-      border-radius: 7px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border: 1px solid transparent;
+      padding: 11px 12px;
+      border: none;
+      border-radius: 9px;
       background: transparent;
-      color: #f4f7fb;
+      color: var(--wk-muted);
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 800;
       cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: center;
+      transition: background .16s, color .16s;
     }
+    .seg-btn:hover { color: var(--wk-ink); }
     .seg-btn.active {
-      background: #233d63;
-      color: #ffffff;
-      border-color: #2a4a76;
-    }
-    .seg-btn:hover:not(.active) {
-      background: #172e4d;
-      color: #ffffff;
+      background: linear-gradient(135deg, var(--wk-green-light), var(--wk-green));
+      color: #fff;
+      box-shadow: 0 5px 16px rgba(10, 143, 60, .34);
     }
 
-    /* MAIN FORM BOX */
+    /* ── Form card ────────────────────────────────────────────────────── */
     .main-form-box {
-      background: #20364b;
-      border: 1px solid #2d4a64;
-      border-radius: 12px;
-      padding: 24px;
-      min-height: min-content;
-      box-sizing: border-box;
+      padding: 22px 20px 24px;
+      border-radius: 16px;
+      background: var(--wk-panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--wk-line);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, .48);
     }
     .box-heading {
-      color: #ffffff;
-      font-size: 1.8rem;
-      font-weight: 800;
-      margin: 0 0 4px 0;
-      line-height: 1.2;
+      margin: 0;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -.3px;
+      color: #fff;
     }
     .box-subheading {
-      color: #f4f7fb;
-      font-size: 0.95rem;
-      margin: 0 0 20px 0;
+      margin: 3px 0 16px;
+      font-size: 12.5px;
+      color: var(--wk-muted);
     }
 
-    /* PRESETS ROW */
     .presets-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 24px;
-    }
-    @media (max-width: 480px) {
-      .presets-row {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      gap: 7px;
+      margin-bottom: 16px;
     }
     .preset-pill {
-      background: #2d557f;
-      color: #ffffff;
-      border: 1px solid #2d557f;
-      border-radius: 20px;
-      padding: 10px 14px;
-      font-size: 0.9rem;
-      font-weight: 600;
+      padding: 9px 4px;
+      border-radius: 9px;
+      border: 1px solid var(--wk-line);
+      background: rgba(255, 255, 255, .05);
+      color: var(--wk-ink);
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 800;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background .15s, border-color .15s, transform .1s;
     }
     .preset-pill:hover {
-      background: #38658f;
-      border-color: #38658f;
+      background: rgba(22, 194, 91, .16);
+      border-color: var(--wk-green-light);
     }
-    .preset-pill:active {
-      transform: scale(0.97);
-    }
+    .preset-pill:active { transform: translateY(1px); }
 
-    /* FIELD WRAPPER */
-    .field-wrap {
-      margin-bottom: 20px;
-    }
+    .field-wrap { margin-bottom: 14px; }
     .field-lbl {
       display: block;
-      color: #ffffff;
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      color: var(--wk-muted);
     }
-    .phone-box {
-      display: flex;
-      width: 100%;
-    }
+
+    .phone-box { display: flex; gap: 8px; }
     .code-select {
-      background: #0d2139;
-      border: 1px solid #183456;
-      border-right: none;
-      border-radius: 8px 0 0 8px;
-      color: #ffffff;
-      padding: 12px 14px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      outline: none;
+      flex: 0 0 auto;
+      padding: 0 12px;
+      min-width: 78px;
+      border-radius: 10px;
+      border: 1px solid var(--wk-line);
+      background: linear-gradient(150deg, var(--wk-green), var(--wk-green-deep));
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 800;
       cursor: pointer;
-      appearance: none;
-      padding-right: 28px;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 10px;
-    }
-    .phone-input {
-      flex: 1;
-      background: #0d2139;
-      border: 1px solid #183456;
-      border-radius: 0 8px 8px 0;
-      color: #ffffff;
-      padding: 12px 16px;
-      font-size: 1rem;
-      font-weight: 500;
       outline: none;
-      transition: border-color 0.2s;
     }
-    .phone-input:focus, .amount-input:focus {
-      border-color: #3b82f6;
-    }
+    .code-select option { background: #06301a; color: #fff; }
+
+    .phone-input,
     .amount-input {
       width: 100%;
-      background: #0d2139;
-      border: 1px solid #183456;
-      border-radius: 8px;
-      color: #ffffff;
-      padding: 12px 16px;
-      font-size: 1rem;
-      font-weight: 500;
+      padding: 13px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--wk-line);
+      background: rgba(255, 255, 255, .05);
+      color: #fff;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
       outline: none;
-      box-sizing: border-box;
+      transition: border-color .16s, box-shadow .16s, background .16s;
     }
+    .phone-input:focus,
+    .amount-input:focus {
+      border-color: var(--wk-green-light);
+      background: rgba(255, 255, 255, .08);
+      box-shadow: 0 0 0 3px rgba(22, 194, 91, .18);
+    }
+    .phone-input::placeholder,
+    .amount-input::placeholder { color: rgba(220, 240, 228, .36); }
+
     .help-lbl {
       display: block;
-      color: #f4f7fb;
-      font-size: 0.85rem;
-      margin-top: 8px;
+      margin-top: 6px;
+      font-size: 11.5px;
+      color: var(--wk-muted);
+      line-height: 1.45;
     }
 
     .alert-msg {
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-      background: rgba(59, 130, 246, 0.15);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #60a5fa;
+      margin: 4px 0 14px;
+      padding: 11px 13px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
     }
     .alert-msg.err {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.3);
-      color: #f87171;
+      background: rgba(232, 32, 42, .14);
+      border: 1px solid rgba(232, 32, 42, .4);
+      color: #ffb3b7;
     }
     .alert-msg.ok {
-      background: rgba(34, 197, 94, 0.15);
-      border-color: rgba(34, 197, 94, 0.3);
-      color: #4ade80;
+      background: rgba(22, 194, 91, .14);
+      border: 1px solid rgba(22, 194, 91, .42);
+      color: #a8f0c4;
     }
 
-    /* ACTIONS ROW */
     .actions-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 28px;
-      gap: 16px;
+      gap: 10px;
+      margin-top: 18px;
     }
-
-    @media (max-width: 640px) {
-      .wallet-page-wrapper {
-        padding: 20px 12px 32px;
-      }
-
-      .wallet-card-container {
-        padding: 12px;
-        border-radius: 12px;
-      }
-
-      .balance-banner-card,
-      .main-form-box {
-        padding: 20px;
-      }
-
-      .actions-row {
-        margin-top: 24px;
-      }
+    .btn-back,
+    .btn-green {
+      flex: 1;
+      padding: 14px 16px;
+      border: none;
+      border-radius: 11px;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 900;
+      letter-spacing: .4px;
+      cursor: pointer;
+      transition: transform .12s, filter .16s, box-shadow .16s;
     }
     .btn-back {
-      background: #2a3f5d;
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 28px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: background 0.2s;
+      flex: 0 0 34%;
+      background: rgba(255, 255, 255, .07);
+      border: 1px solid var(--wk-line);
+      color: var(--wk-muted);
     }
-    .btn-back:hover {
-      background: #385575;
-    }
+    .btn-back:hover { color: var(--wk-ink); background: rgba(255, 255, 255, .1); }
     .btn-green {
-      background: #27c127;
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 32px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+      background: linear-gradient(135deg, var(--wk-gold), #ffb300);
+      color: #1a1a1a;
+      box-shadow: 0 8px 22px rgba(255, 212, 0, .26);
     }
-    .btn-green:hover:not(:disabled) {
-      background: #1eaa23;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(34, 197, 94, 0.45);
-    }
-    .btn-green:active:not(:disabled) {
-      transform: translateY(1px) scale(0.98);
-    }
-    .btn-green:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-    /* POPUP MODAL */
+    .btn-green:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.04); }
+    .btn-green:active:not(:disabled) { transform: translateY(1px); }
+    .btn-green:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+
+    /* ── Withdrawal confirmation popup ────────────────────────────────── */
     .popup-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
+      z-index: 400;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(2, 10, 5, .72);
       backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
     .popup-modal {
-      background: #132d4a;
-      border: 1px solid #1e4370;
-      border-radius: 18px;
-      padding: 36px 32px 28px;
-      max-width: 400px;
-      width: 92%;
-      max-height: 85vh;
-      overflow-y: auto;
+      width: min(400px, 100%);
+      padding: 26px 24px 24px;
+      border-radius: 16px;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      animation: popIn 0.25s ease;
+      background: var(--wk-panel);
+      border: 1px solid var(--wk-line);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+      animation: wk-pop .24s ease;
     }
-    @keyframes popIn {
-      from { transform: scale(0.85); opacity: 0; }
-      to   { transform: scale(1);    opacity: 1; }
+    @keyframes wk-pop {
+      from { opacity: 0; transform: translateY(12px) scale(.97); }
+      to   { opacity: 1; transform: none; }
     }
-    .popup-icon { font-size: 3rem; margin-bottom: 12px; }
-    .popup-title { font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0 0 12px; }
-    .popup-body  { font-size: 0.95rem; color: #a8c4e0; line-height: 1.65; margin: 0 0 24px; word-break: break-word; white-space: pre-wrap; }
-    .popup-ok-btn {
-      background: #27c127;
+    .popup-icon {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 34% 28%, rgba(22, 194, 91, .32), rgba(4, 56, 28, .5));
+      border: 2px solid var(--wk-green-light);
+    }
+    .popup-title {
+      margin: 0 0 8px;
+      font-size: 19px;
+      font-weight: 900;
       color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 13px 44px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
     }
-    .popup-ok-btn:hover { background: #1fa81f; }
+    .popup-body {
+      margin: 0 0 20px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--wk-muted);
+      white-space: pre-line;
+    }
+    .popup-ok-btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--wk-green-light), var(--wk-green));
+      color: #fff;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(10, 143, 60, .34);
+    }
+    .popup-ok-btn:active { transform: translateY(1px); }
+
+    @media (max-width: 480px) {
+      .wallet-page-wrapper { padding: 16px 12px 36px; }
+      .val-amount { font-size: 28px; }
+      .main-form-box { padding: 18px 16px 20px; }
+      .presets-row { gap: 6px; }
+      .preset-pill { font-size: 11.5px; padding: 9px 2px; }
+    }
   `]
 })
 export class WalletComponent implements OnInit, OnDestroy {
