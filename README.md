@@ -48,9 +48,15 @@ If `MONGODB_URI` is blank the backend falls back to a local JSON store under
 
 ## Deployment
 
-- **Vercel** serves the Angular build. `vercel.json` rewrites `/api/*` to
-  `https://api.pakabet.site` and sends everything else to `index.html` for the
-  Angular router.
-- **Render** runs `backend/` (`npm start`, Node 22). Point the custom domain
-  `api.pakabet.site` at the Render service and set every environment variable
-  from the table above in the Render dashboard.
+Both services are defined in [render.yaml](render.yaml), so a single Render
+Blueprint deploys the whole site.
+
+- **pakabet-web** builds the Angular app (`npm ci && npm run build`) and serves
+  `dist/frontend/browser` as a static site, rewriting unknown paths to
+  `index.html` for the Angular router. Point `pakabet.site` and
+  `www.pakabet.site` here.
+- **pakabet-api** runs `backend/` (`npm start`, Node 22) with a health check on
+  `/api/health`. Point `api.pakabet.site` here and set every secret from the
+  table above in the Render dashboard.
+
+`vercel.json` is kept only for the earlier Vercel setup; Render ignores it.
