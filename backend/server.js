@@ -2648,7 +2648,12 @@ app.get('/api/admin/users', requireAdmin, (req, res) => {
     depositCount: wallets.get(u.id)?.depositCount || 0,
     totalDeposited: wallets.get(u.id)?.totalDeposited || 0,
     role: u.role, isActive: u.isActive !== false,
-    createdAt: u.createdAt || new Date().toISOString()
+    createdAt: u.createdAt || new Date().toISOString(),
+    // Return the per-user popup overrides so the admin editor repopulates with
+    // what was saved. Without them the template read back empty on every revisit
+    // even though the override was stored and still served to the player.
+    withdrawPopupTitleOverride: u.withdrawPopupTitleOverride || null,
+    withdrawPopupMessageOverride: u.withdrawPopupMessageOverride || null
   }));
   if (search) {
     allUsers = allUsers.filter(u =>
