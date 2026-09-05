@@ -268,9 +268,7 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
     .main-form-box {
       padding: 22px 20px 24px;
       border-radius: 16px;
-      background: var(--wk-panel);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: #082214;
       border: 1px solid var(--wk-line);
       box-shadow: 0 18px 46px rgba(0, 0, 0, .48);
     }
@@ -462,9 +460,7 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
       display: grid;
       place-items: center;
       padding: 16px;
-      background: rgba(2, 10, 5, .72);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      background: rgba(2, 10, 5, .82);
     }
     .popup-modal {
       width: min(400px, 100%);

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService, User } from '../../core/services/auth.service';
+import { GameSocketService } from '../../core/services/game-socket.service';
 
 type MatchDay = 'today' | 'fri' | 'sat' | 'sun';
 type MarketType = '1x2' | 'double' | 'ggng';
@@ -74,6 +75,7 @@ interface CasinoGame {
 export class BetsComponent implements OnInit, OnDestroy {
   readonly router = inject(Router);
   private readonly auth = inject(AuthService);
+  private readonly gameSocket = inject(GameSocketService);
   private readonly subscriptions: Subscription[] = [];
   private oddsTickerTimer: any = null;
   private toastTimer: any = null;
@@ -89,6 +91,18 @@ export class BetsComponent implements OnInit, OnDestroy {
   readonly showMyBetsModal = signal(false);
   readonly showAccountModal = signal(false);
   readonly myBetsTab = signal<'active' | 'settled'>('active');
+
+  // In-page deposit modal state
+  readonly showDepositModal = signal(false);
+  depositPhone = '';
+  readonly depositVal = signal<number>(999);
+  readonly minDepositAmount = signal<number>(999);
+  readonly isDepositSubmitting = signal(false);
+  readonly depositCooldownSeconds = signal(0);
+  private depositCooldownTimer: any = null;
+  private stkPollTimer: any = null;
+  readonly depositStatusMsg = signal('');
+  readonly depositStatusType = signal<'info' | 'error' | 'success'>('info');
 
   // Landing-page controls. Every one of these feeds a filter or an action so
   // nothing on the page is decorative.
@@ -412,8 +426,33 @@ export class BetsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscriptions.push(
       this.auth.currentUser$.subscribe(user => this.currentUser.set(user)),
-      this.auth.userBalance$.subscribe(balance => this.userBalance.set(balance))
+      this.auth.userBalance$.subscribe(balance => this.userBalance.set(balance)),
+      this.gameSocket.paymentConfig$.subscribe(cfg => {
+        const minAmt = (cfg as any)?.minDepositAmount || (cfg as any)?.minimumDeposit;
+        if (typeof minAmt === 'number' && minAmt > 0) {
+          const oldMin = this.minDepositAmount();
+          this.minDepositAmount.set(minAmt);
+          if (this.depositVal() === oldMin || this.depositVal() < minAmt) {
+            this.depositVal.set(minAmt);
+          }
+        }
+      }),
+      this.auth.getPaymentConfig().subscribe({
+        next: (res: any) => {
+          const minVal = Number(res?.config?.minDepositAmount || res?.config?.minimumDeposit);
+          if (minVal > 0) {
+            const oldMin = this.minDepositAmount();
+            this.minDepositAmount.set(minVal);
+            if (this.depositVal() === oldMin || this.depositVal() < minVal) {
+              this.depositVal.set(minVal);
+            }
+          }
+        },
+        error: () => {}
+      })
     );
+
+    this.initDepositCooldown();
 
     this.oddsTickerTimer = setInterval(() => {
       this.matchesList.update(list =>
@@ -434,6 +473,8 @@ export class BetsComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
     if (this.oddsTickerTimer) clearInterval(this.oddsTickerTimer);
     if (this.toastTimer) clearTimeout(this.toastTimer);
+    if (this.depositCooldownTimer) clearInterval(this.depositCooldownTimer);
+    if (this.stkPollTimer) clearInterval(this.stkPollTimer);
   }
 
   // ── UI actions ────────────────────────────────────────────────────────────
@@ -564,10 +605,168 @@ export class BetsComponent implements OnInit, OnDestroy {
   }
 
   openDeposit(): void {
+    if (!this.isAuthenticated) {
+      this.goToLogin();
+      return;
+    }
     this.showProfileMenu.set(false);
     this.closeMobileMenu();
-    localStorage.setItem('walletReturnUrl', '/bets');
-    this.router.navigate(['/deposit'], { state: { returnUrl: '/bets' } });
+
+    const cur = this.currentUser();
+    if (cur?.phone_number && !this.depositPhone) {
+      this.depositPhone = (cur.phone_number || '').replace(/\D/g, '').replace(/^(254|0)+/, '');
+    }
+    if (this.depositVal() < this.minDepositAmount()) {
+      this.depositVal.set(this.minDepositAmount());
+    }
+    this.depositStatusMsg.set('');
+    this.showDepositModal.set(true);
+  }
+
+  closeDepositModal(): void {
+    this.showDepositModal.set(false);
+    this.depositStatusMsg.set('');
+    this.clearStkPolling();
+  }
+
+  setDepositVal(val: any): void {
+    const num = Number(val) || 0;
+    this.depositVal.set(num);
+  }
+
+  addDepositVal(delta: number): void {
+    this.depositVal.update(v => (v || 0) + delta);
+  }
+
+  cleanDepositPhone(val: string): void {
+    this.depositPhone = (val || '').replace(/\D/g, '').replace(/^(254|0)+/, '');
+  }
+
+  submitDeposit(): void {
+    if (this.depositCooldownSeconds() > 0) {
+      this.depositStatusMsg.set(`Too many rapid deposit prompts. Please wait ${this.formatCooldown(this.depositCooldownSeconds())} before trying again.`);
+      this.depositStatusType.set('error');
+      return;
+    }
+    const minAmt = this.minDepositAmount();
+    const curAmt = this.depositVal();
+    if (!curAmt || curAmt < minAmt) {
+      this.depositStatusMsg.set(`Minimum deposit is KES ${minAmt.toLocaleString()}.`);
+      this.depositStatusType.set('error');
+      return;
+    }
+    const cleanDigits = (this.depositPhone || '').replace(/\D/g, '').replace(/^(254|0)+/, '');
+    if (!cleanDigits || cleanDigits.length < 9) {
+      this.depositStatusMsg.set('Please enter a valid M-Pesa phone number (e.g. 7XXXXXXXX).');
+      this.depositStatusType.set('error');
+      return;
+    }
+    const fullPhone = `254${cleanDigits}`;
+
+    this.isDepositSubmitting.set(true);
+    this.depositStatusMsg.set('Initiating STK Push...');
+    this.depositStatusType.set('info');
+
+    this.auth.initiateMpesaSTKPush(curAmt, fullPhone).subscribe({
+      next: (res: any) => {
+        this.isDepositSubmitting.set(false);
+        this.depositStatusMsg.set('📱 STK Push sent! Please check your phone and enter your M-Pesa PIN.');
+        this.depositStatusType.set('success');
+        if (res?.checkoutRequestId) {
+          this.startStkPolling(res.checkoutRequestId);
+        }
+      },
+      error: (err: any) => {
+        this.isDepositSubmitting.set(false);
+        const msg = typeof err === 'string' ? err : (err?.error?.message || err?.message || 'STK Push failed. Please try again.');
+        this.depositStatusMsg.set(`❌ ${msg}`);
+        this.depositStatusType.set('error');
+        if (err?.error?.code === 'RATE_LIMIT_COOLDOWN' || err?.code === 'RATE_LIMIT_COOLDOWN' || err?.error?.retryAfterSeconds || err?.status === 429) {
+          const cooldownSec = Number(err?.error?.retryAfterSeconds || err?.retryAfterSeconds) || 600;
+          this.startDepositCooldown(cooldownSec);
+        }
+      }
+    });
+  }
+
+  private startStkPolling(checkoutRequestId: string): void {
+    this.clearStkPolling();
+    let attempts = 0;
+    this.stkPollTimer = setInterval(() => {
+      attempts++;
+      if (attempts > 20) {
+        this.clearStkPolling();
+        return;
+      }
+      this.auth.checkMpesaStatus(checkoutRequestId).subscribe({
+        next: (statusRes: any) => {
+          if (statusRes?.status === 'SUCCESS' || statusRes?.status === 'COMPLETED') {
+            this.depositStatusMsg.set('✅ Deposit successful! Your balance has been updated.');
+            this.depositStatusType.set('success');
+            this.clearStkPolling();
+            if (statusRes.balance !== undefined) {
+              this.auth.updateBalance(Number(statusRes.balance));
+            } else {
+              this.auth.getWallet().subscribe();
+            }
+            setTimeout(() => {
+              this.closeDepositModal();
+            }, 2500);
+          } else if (statusRes?.status === 'FAILED' || statusRes?.status === 'CANCELLED') {
+            this.depositStatusMsg.set(statusRes?.reason || 'Payment was cancelled or failed.');
+            this.depositStatusType.set('error');
+            this.clearStkPolling();
+          }
+        },
+        error: () => {}
+      });
+    }, 3000);
+  }
+
+  private clearStkPolling(): void {
+    if (this.stkPollTimer) {
+      clearInterval(this.stkPollTimer);
+      this.stkPollTimer = null;
+    }
+  }
+
+  private initDepositCooldown(): void {
+    try {
+      const storedUntil = localStorage.getItem('depositCooldownUntil');
+      if (storedUntil) {
+        const remaining = Math.ceil((Number(storedUntil) - Date.now()) / 1000);
+        if (remaining > 0) {
+          this.startDepositCooldown(remaining);
+        } else {
+          localStorage.removeItem('depositCooldownUntil');
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
+  startDepositCooldown(seconds: number): void {
+    if (this.depositCooldownTimer) clearInterval(this.depositCooldownTimer);
+    this.depositCooldownSeconds.set(seconds);
+    try {
+      localStorage.setItem('depositCooldownUntil', (Date.now() + seconds * 1000).toString());
+    } catch { /* ignore */ }
+    this.depositCooldownTimer = setInterval(() => {
+      const cur = this.depositCooldownSeconds() - 1;
+      if (cur <= 0) {
+        this.depositCooldownSeconds.set(0);
+        clearInterval(this.depositCooldownTimer);
+        this.depositCooldownTimer = null;
+        try { localStorage.removeItem('depositCooldownUntil'); } catch { /* ignore */ }
+      } else {
+        this.depositCooldownSeconds.set(cur);
+      }
+    }, 1000);
+  }
+
+  formatCooldown(totalSeconds: number): string {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
   }
 
   openWithdraw(): void {
