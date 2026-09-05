@@ -89,6 +89,13 @@ export interface PlayerRealtimeEvent {
   depositCount?: number;
 }
 
+export interface PaymentConfigPayload {
+  provider?: string;
+  minDepositAmount: number;
+  minWithdrawalAmount?: number;
+  updatedAt?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class GameSocketService {
   private socket: Socket | null = null;
@@ -98,6 +105,7 @@ export class GameSocketService {
   public roundState$ = new BehaviorSubject<PhaseUpdate>({ phase: 'betting', multiplier: 1.00 });
   public multiplier$ = new BehaviorSubject<number>(1.00);
   public balance$ = new BehaviorSubject<number>(0);
+  public paymentConfig$ = new BehaviorSubject<PaymentConfigPayload>({ minDepositAmount: 999 });
   public roundHistory$ = new BehaviorSubject<number[]>([]);
   public activeBets$ = new BehaviorSubject<SourceGameBet[]>([]);
 
@@ -305,6 +313,11 @@ export class GameSocketService {
         reason: data?.message || 'The M-Pesa payment was not completed.',
         amount: Number(data?.amount || 0),
       });
+    });
+    this.socket.on('payment:config', (data: PaymentConfigPayload) => {
+      if (data && typeof data.minDepositAmount === 'number' && data.minDepositAmount >= 1) {
+        this.paymentConfig$.next(data);
+      }
     });
     this.socket.on('error', (data: { message?: string; roomId?: number; betId?: string }) => {
       const slot = this.toSlot(data?.betId);

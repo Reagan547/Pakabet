@@ -44,6 +44,14 @@ interface GameTile {
   target?: string;
 }
 
+export interface QuickPhotoTile {
+  id: string;
+  label: string;
+  image: string;
+  action: 'aviator' | 'casino';
+  target?: string;
+}
+
 interface CasinoGame {
   id: string;
   name: string;
@@ -52,6 +60,7 @@ interface CasinoGame {
   from: string;
   to: string;
   icon: string;
+  photo?: string;
   live?: boolean;
 }
 
@@ -119,13 +128,13 @@ export class BetsComponent implements OnInit, OnDestroy {
     { id: 'pakalive', label: 'PakaLive', badge: 'LIVE', icon: '/assets/icons/games/live.svg', from: '#e8202a', to: '#9c0d15', action: 'sport', target: 'live' },
     { id: 'soccer', label: 'Soccer', icon: '/assets/icons/games/soccer.svg', from: '#12a04a', to: '#0a6e32', action: 'sport', target: 'soccer' },
     { id: 'pakaleague', label: 'PakaLeague', icon: '/assets/icons/games/trophy.svg', from: '#ff2d78', to: '#b3004e', action: 'casino' },
-    { id: 'aviator', label: 'Aviator', badge: 'HOT', icon: '/assets/images/bets-aviator-button.jpg', from: '#7a0d18', to: '#2b0b10', action: 'aviator' },
+    { id: 'aviator', label: 'Aviator', badge: 'HOT', icon: '/assets/games/photos/aviator.jpg', from: '#7a0d18', to: '#2b0b10', action: 'aviator' },
     { id: 'pakapoly', label: 'PakaPoly', icon: '/assets/icons/games/gem.svg', from: '#7b3ff2', to: '#3d1b8f', action: 'casino' },
     { id: 'virtuals', label: 'Virtuals', badge: 'NEW', icon: '/assets/icons/games/virtuals.svg', from: '#0fb5a0', to: '#07655a', action: 'casino' },
     { id: 'games', label: 'Games', icon: '/assets/icons/games/gamepad.svg', from: '#ffc400', to: '#c28f00', action: 'casino' },
     { id: 'crash', label: 'Crash', icon: '/assets/icons/games/crash.svg', from: '#1a73e8', to: '#0b4a99', action: 'casino' },
     { id: 'promos', label: 'Promos', badge: 'NEW', icon: '/assets/icons/games/promo.svg', from: '#ff5a1f', to: '#b02f00', action: 'promos' },
-    { id: 'liginare', label: 'LigiNare', icon: '/assets/icons/games/swords.svg', from: '#e8202a', to: '#7a0d13', action: 'casino' },
+    { id: 'liginare', label: 'LigiNare', icon: '/assets/games/photos/liginare.jpg', from: '#e8202a', to: '#7a0d13', action: 'casino' },
     { id: 'evolution', label: 'Evolution', badge: 'NEW', icon: '/assets/icons/games/cards.svg', from: '#101a2b', to: '#05080f', action: 'casino' },
     { id: 'pakaturbo', label: 'PakaTurbo', badge: 'NEW', icon: '/assets/icons/games/turbo.svg', from: '#ffb300', to: '#c26a00', action: 'casino' },
     { id: 'slots', label: 'Slots', icon: '/assets/icons/games/slots.svg', from: '#8e24aa', to: '#4a0d5c', action: 'casino' },
@@ -135,6 +144,16 @@ export class BetsComponent implements OnInit, OnDestroy {
     { id: 'tennis', label: 'Tennis', icon: '/assets/icons/games/tennis.svg', from: '#1e88e5', to: '#0d4a80', action: 'sport', target: 'tennis' },
     { id: 'icehockey', label: 'Ice Hockey', icon: '/assets/icons/games/hockey.svg', from: '#4fc3f7', to: '#1a6d94', action: 'sport', target: 'ice-hockey' },
     { id: 'rugby', label: 'Rugby', icon: '/assets/icons/games/rugby.svg', from: '#e53935', to: '#8a1f1d', action: 'sport', target: 'rugby' }
+  ];
+
+  // ── Desktop Left Sidebar 3x2 Quick Tiles (matching Odibets layout) ────────
+  readonly leftQuickTiles: QuickPhotoTile[] = [
+    { id: 'virtuals', label: 'Instant Virtuals', image: '/assets/games/photos/instant-virtuals.jpg', action: 'casino' },
+    { id: 'aviator', label: 'Aviator', image: '/assets/games/photos/aviator.jpg', action: 'aviator' },
+    { id: 'aviatrix', label: 'Aviatrix', image: '/assets/games/photos/aviatrix.jpg', action: 'casino' },
+    { id: 'cometcrash', label: 'Comet Crash', image: '/assets/games/photos/comet-crash.jpg', action: 'casino' },
+    { id: 'liginare', label: 'LigiNare', image: '/assets/games/photos/liginare.jpg', action: 'casino' },
+    { id: 'jetx', label: 'JetX', image: '/assets/games/photos/jetx.jpg', action: 'casino' }
   ];
 
   // ── Casino / crash game cards ─────────────────────────────────────────────
@@ -169,13 +188,13 @@ export class BetsComponent implements OnInit, OnDestroy {
   ];
 
   readonly casinoGames: CasinoGame[] = [
-    { id: 'aviator', name: 'Aviator', tagline: 'Cash out before it flies', category: 'crash', icon: '/assets/images/bets-aviator-button.jpg', from: '#7a0d18', to: '#2b0b10', live: true },
-    { id: 'pakahero', name: 'Paka Hero', tagline: 'Multiplier rush', category: 'crash', icon: '/assets/icons/games/gamepad.svg', from: '#0f9d58', to: '#054d2a' },
-    { id: 'kingmove', name: 'King Move', tagline: 'Beat the champion', category: 'crash', icon: '/assets/icons/games/swords.svg', from: '#7b1fa2', to: '#3a0a52' },
-    { id: 'jetx', name: 'JetX', tagline: 'Ride the jet', category: 'crash', icon: '/assets/icons/games/aviator.svg', from: '#2c2c2c', to: '#000000' },
-    { id: 'oviator', name: 'Oviator', tagline: 'Classic biplane crash', category: 'crash', icon: '/assets/icons/games/aviator.svg', from: '#12a04a', to: '#0a6e32' },
-    { id: 'cometcrash', name: 'Comet Crash', tagline: 'Up to 1,000,000x', category: 'crash', icon: '/assets/icons/games/crash.svg', from: '#ff6f00', to: '#8a3600' },
-    { id: 'aviatrix', name: 'Aviatrix', tagline: 'Fly your own plane', category: 'crash', icon: '/assets/icons/games/aviator.svg', from: '#3d1b8f', to: '#1a0a44' },
+    { id: 'aviator', name: 'Aviator', tagline: 'Cash out before it flies', category: 'crash', icon: '/assets/games/photos/aviator.jpg', photo: '/assets/games/photos/aviator.jpg', from: '#7a0d18', to: '#2b0b10', live: true },
+    { id: 'pakahero', name: 'Paka Hero', tagline: 'Multiplier rush', category: 'crash', icon: '/assets/games/photos/pakahero.jpg', photo: '/assets/games/photos/pakahero.jpg', from: '#0f9d58', to: '#054d2a' },
+    { id: 'kingmove', name: 'King Move', tagline: 'Beat the champion', category: 'crash', icon: '/assets/games/photos/kings-move.jpg', photo: '/assets/games/photos/kings-move.jpg', from: '#7b1fa2', to: '#3a0a52' },
+    { id: 'jetx', name: 'JetX', tagline: 'Ride the jet', category: 'crash', icon: '/assets/games/photos/jetx.jpg', photo: '/assets/games/photos/jetx.jpg', from: '#2c2c2c', to: '#000000' },
+    { id: 'oviator', name: 'Oviator', tagline: 'Classic biplane crash', category: 'crash', icon: '/assets/games/photos/oviator.jpg', photo: '/assets/games/photos/oviator.jpg', from: '#12a04a', to: '#0a6e32' },
+    { id: 'cometcrash', name: 'Comet Crash', tagline: 'Up to 1,000,000x', category: 'crash', icon: '/assets/games/photos/comet-crash.jpg', photo: '/assets/games/photos/comet-crash.jpg', from: '#ff6f00', to: '#8a3600' },
+    { id: 'aviatrix', name: 'Aviatrix', tagline: 'Fly your own plane', category: 'crash', icon: '/assets/games/photos/aviatrix.jpg', photo: '/assets/games/photos/aviatrix.jpg', from: '#3d1b8f', to: '#1a0a44' },
     { id: 'luckyspin', name: 'Lucky Spin', tagline: 'Spin to win', category: 'wheel', icon: '/assets/icons/games/wheel.svg', from: '#e8202a', to: '#8a0d13' },
     { id: 'megawheel', name: 'Mega Wheel', tagline: 'Live wheel show', category: 'wheel', icon: '/assets/icons/games/wheel.svg', from: '#ffb300', to: '#a86f00' },
     { id: 'diceking', name: 'Dice King', tagline: 'Roll over or under', category: 'dice', icon: '/assets/icons/games/dice.svg', from: '#0fb5a0', to: '#07655a' },
@@ -185,7 +204,7 @@ export class BetsComponent implements OnInit, OnDestroy {
     { id: 'simbareels', name: 'Simba Reels', tagline: 'Free spins daily', category: 'slots', icon: '/assets/icons/games/slots.svg', from: '#8e24aa', to: '#4a0d5c' },
     { id: 'pakaroyale', name: 'Paka Royale', tagline: 'Exclusive table', category: 'exclusive', icon: '/assets/icons/games/cards.svg', from: '#101a2b', to: '#05080f' },
     { id: 'pakacash', name: 'Paka Cash', tagline: 'Instant scratch wins', category: 'exclusive', icon: '/assets/icons/games/jackpot.svg', from: '#12a04a', to: '#064a22' },
-    { id: 'vfootball', name: 'Virtual Football', tagline: 'Every 3 minutes', category: 'virtuals', icon: '/assets/icons/games/soccer.svg', from: '#12a04a', to: '#0a6e32' },
+    { id: 'vfootball', name: 'Virtual Football', tagline: 'Every 3 minutes', category: 'virtuals', icon: '/assets/games/photos/instant-virtuals.jpg', photo: '/assets/games/photos/instant-virtuals.jpg', from: '#12a04a', to: '#0a6e32' },
     { id: 'vracing', name: 'Virtual Racing', tagline: 'Instant results', category: 'virtuals', icon: '/assets/icons/games/crash.svg', from: '#5d4037', to: '#2b1a15' },
     { id: 'highroller', name: 'High Roller', tagline: 'KES 100k max bet', category: 'high', icon: '/assets/icons/games/jackpot.svg', from: '#c62828', to: '#6a0f0f' },
     { id: 'vipcrash', name: 'VIP Crash', tagline: 'High stakes only', category: 'high', icon: '/assets/icons/games/crash.svg', from: '#37474f', to: '#151d21' },
@@ -467,6 +486,19 @@ export class BetsComponent implements OnInit, OnDestroy {
     this.notify(`${game.name} is launching soon on Pakabet.`);
   }
 
+  openQuickTile(tile: QuickPhotoTile): void {
+    if (tile.action === 'aviator' || tile.id === 'aviator') {
+      this.goToAviator();
+      return;
+    }
+    const game = this.casinoGames.find(g => g.id === tile.id);
+    if (game) {
+      this.openCasinoGame(game);
+    } else {
+      this.notify(`${tile.label} is launching soon on Pakabet.`);
+    }
+  }
+
   selectSport(sportId: string): void {
     this.selectedSport.set(sportId);
     this.activeLeague.set(null);
@@ -500,6 +532,10 @@ export class BetsComponent implements OnInit, OnDestroy {
   }
   closeMobileMenu(): void { this.mobileMenuOpen.set(false); }
   toggleProfileMenu(): void { this.showProfileMenu.update(value => !value); }
+  closeAllMenus(): void {
+    this.showProfileMenu.set(false);
+    this.mobileMenuOpen.set(false);
+  }
 
   openMyBetsModal(): void {
     this.showProfileMenu.set(false);
@@ -532,6 +568,13 @@ export class BetsComponent implements OnInit, OnDestroy {
     this.closeMobileMenu();
     localStorage.setItem('walletReturnUrl', '/bets');
     this.router.navigate(['/deposit'], { state: { returnUrl: '/bets' } });
+  }
+
+  openWithdraw(): void {
+    this.showProfileMenu.set(false);
+    this.closeMobileMenu();
+    localStorage.setItem('walletReturnUrl', '/bets');
+    this.router.navigate(['/withdraw'], { state: { returnUrl: '/bets' } });
   }
 
   // ── Bet slip ──────────────────────────────────────────────────────────────

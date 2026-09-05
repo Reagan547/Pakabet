@@ -337,6 +337,9 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
   public showProfileDropdown = signal<boolean>(false);
   public walletTab = signal<'deposit' | 'withdraw' | 'transactions'>('deposit');
   public depositVal = signal<number>(999);
+  public minDepositAmount = signal<number>(999);
+  public depositCooldownSeconds = signal<number>(0);
+  private depositCooldownTimer: any = null;
   public depositSelectedPreset = signal<number | null>(null);
   public depositPresetTapCount = signal<number>(0);
   public withdrawVal = signal<number>(500);
@@ -598,6 +601,7 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.fakeJoinIntervalId) clearInterval(this.fakeJoinIntervalId);
     if (this.chatSimulationIntervalId) clearTimeout(this.chatSimulationIntervalId);
     if (this.chatOnlineIntervalId) clearInterval(this.chatOnlineIntervalId);
+    this.clearDepositCooldownTimer();
     this.cashoutNotificationTimeouts.forEach(timeout => clearTimeout(timeout));
     if (this.resizeObserver) this.resizeObserver.disconnect();
     this.gameSound.stopBackground();
@@ -847,8 +851,30 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     }
 
+    this.authService.getDepositCooldown().subscribe(res => {
+      if (res.inCooldown && res.retryAfterSeconds > 0) {
+        this.startDepositCooldown(res.retryAfterSeconds);
+      }
+    });
+
+    this.authService.getPaymentConfig().subscribe(config => {
+      const oldMin = this.minDepositAmount();
+      this.minDepositAmount.set(config.minDepositAmount);
+      if (!this.depositVal() || this.depositVal() === oldMin || this.depositVal() < config.minDepositAmount) {
+        this.depositVal.set(config.minDepositAmount);
+      }
+    });
+
     // Listen for server-pushed M-Pesa success & failed events
     this.subs.push(
+      this.gameSocket.paymentConfig$.subscribe(config => {
+        if (!config?.minDepositAmount) return;
+        const oldMin = this.minDepositAmount();
+        this.minDepositAmount.set(config.minDepositAmount);
+        if (!this.depositVal() || this.depositVal() === oldMin || this.depositVal() < config.minDepositAmount) {
+          this.depositVal.set(config.minDepositAmount);
+        }
+      }),
       this.gameSocket.mpesaSuccess$.subscribe(payload => {
         if (!payload) return;
         console.log(`[${new Date().toISOString()}] [PAYMENT_LOG] Player UI updated: mpesa_success`, payload);
@@ -2676,12 +2702,46 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mpesaCheckoutRequestId = '';
   }
 
+  public formatCooldown(totalSeconds: number): string {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  public startDepositCooldown(seconds: number): void {
+    this.clearDepositCooldownTimer();
+    this.depositCooldownSeconds.set(Math.max(1, Math.ceil(seconds)));
+    this.depositCooldownTimer = setInterval(() => {
+      if (this.depositCooldownSeconds() > 1) {
+        this.depositCooldownSeconds.update(s => s - 1);
+      } else {
+        this.depositCooldownSeconds.set(0);
+        this.clearDepositCooldownTimer();
+        if (this.mpesaStatus() === 'failed' && this.mpesaStatusMsg().includes('rapid')) {
+          this.mpesaStatus.set('idle');
+          this.mpesaStatusMsg.set('');
+        }
+      }
+    }, 1000);
+  }
+
+  public clearDepositCooldownTimer(): void {
+    if (this.depositCooldownTimer) {
+      clearInterval(this.depositCooldownTimer);
+      this.depositCooldownTimer = null;
+    }
+  }
+
   public adjustDepositAmount(delta: number) {
     const current = this.depositVal() || 0;
-    this.depositVal.set(Math.max(999, current + delta));
+    this.depositVal.set(Math.max(this.minDepositAmount(), current + delta));
     // Deselect any preset when manually adjusting
     this.depositSelectedPreset.set(null);
     this.depositPresetTapCount.set(0);
+  }
+
+  public setDepositAmount(amount: number) {
+    this.depositVal.set(amount);
   }
 
   /** Tap once: set amount to preset. Tap again: multiply by tap count. */
@@ -2729,9 +2789,17 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
   private mpesaPollingInterval: any = null;
 
   public submitDeposit() {
+    if (this.depositCooldownSeconds() > 0) {
+      const waitMsg = `Too many rapid deposit prompts. Please wait ${this.formatCooldown(this.depositCooldownSeconds())} before trying again.`;
+      this.showToast(waitMsg, true);
+      this.mpesaStatus.set('failed');
+      this.mpesaStatusMsg.set(waitMsg);
+      return;
+    }
     const amount = this.depositVal();
-    if (isNaN(amount) || amount < 999) {
-      this.showToast('Minimum deposit is KES 999', true);
+    const minDeposit = this.minDepositAmount();
+    if (isNaN(amount) || amount < minDeposit) {
+      this.showToast(`Minimum deposit is KES ${minDeposit.toLocaleString()}`, true);
       return;
     }
 
@@ -2760,9 +2828,14 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadTransactionsHistory();
         this.startMpesaStatusPolling();
       },
-      error: (msg: string) => {
+      error: (err: any) => {
         this.mpesaStatus.set('failed');
+        const msg = typeof err === 'string' ? err : (err?.message || 'STK Push failed.');
         this.mpesaStatusMsg.set(this.friendlyPaymentError(msg));
+        if (err?.code === 'RATE_LIMIT_COOLDOWN' || err?.retryAfterSeconds || err?.status === 429) {
+          const cooldownSec = Number(err?.retryAfterSeconds) || 600;
+          this.startDepositCooldown(cooldownSec);
+        }
       }
     });
   }

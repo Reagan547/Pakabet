@@ -1711,9 +1711,12 @@ io.on('connection', (socket) => {
     2: getRoomPublicState(rooms[2]),
     3: getRoomPublicState(rooms[3])
   });
+
+  // Always send payment config immediately on connect
+  socket.emit('payment:config', paymentConfigPayload());
+
   if (handshakeUser) {
     emitChatSnapshot(socket);
-    socket.emit('payment:config', paymentConfigPayload());
   }
 
   socket.on('auth', (token) => {
@@ -2009,11 +2012,83 @@ app.get('/api/payments/config', (req, res) => {
   return res.json(paymentConfigPayload());
 });
 
+// Rate-limit tracking for PayHero STK push requests to avoid gateway bans
+// Map: userId -> { timestamps: number[], cooldownUntil: number }
+const depositRateLimits = new Map();
+const SHORT_INTERVAL_THRESHOLD_MS = 60 * 1000; // 60 seconds interval between clicks
+const MAX_CONSECUTIVE_SHORT_ATTEMPTS = 3;      // 3 attempts
+const DEPOSIT_COOLDOWN_MS = 10 * 60 * 1000;    // 10 minutes lockout
+
+// Check current user deposit cooldown status
+app.get('/api/payments/cooldown', (req, res) => {
+  const user = getAuthUser(req);
+  if (!user) return res.json({ inCooldown: false });
+  const rateLimit = depositRateLimits.get(user.id);
+  const now = Date.now();
+  if (rateLimit && now < rateLimit.cooldownUntil) {
+    const remainingSeconds = Math.ceil((rateLimit.cooldownUntil - now) / 1000);
+    return res.json({
+      inCooldown: true,
+      cooldownUntil: rateLimit.cooldownUntil,
+      retryAfterSeconds: remainingSeconds
+    });
+  }
+  return res.json({ inCooldown: false });
+});
+
 // Initiate STK Push Payment via PayHero
 app.post('/api/payments/stk-push', async (req, res) => {
   try {
     const user = getAuthUser(req);
     if (!user) return res.status(401).json({ message: 'Unauthorized' });
+
+    const now = Date.now();
+    let rateLimit = depositRateLimits.get(user.id);
+    if (!rateLimit) {
+      rateLimit = { timestamps: [], cooldownUntil: 0 };
+      depositRateLimits.set(user.id, rateLimit);
+    }
+
+    // 1. Check if user is currently in a 10-minute cooldown
+    if (now < rateLimit.cooldownUntil) {
+      const remainingSeconds = Math.ceil((rateLimit.cooldownUntil - now) / 1000);
+      const remainingMinutes = Math.ceil(remainingSeconds / 60);
+      return res.status(429).json({
+        message: `Too many rapid deposit attempts. To avoid payment provider restrictions, please try again in ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}.`,
+        code: 'RATE_LIMIT_COOLDOWN',
+        cooldownUntil: rateLimit.cooldownUntil,
+        retryAfterSeconds: remainingSeconds
+      });
+    }
+
+    // 2. Filter recent timestamps within last 15 minutes
+    rateLimit.timestamps = rateLimit.timestamps.filter(t => (now - t) < 15 * 60 * 1000);
+
+    // 3. Count consecutive short-interval prompts
+    let consecutiveShortCount = 0;
+    const history = rateLimit.timestamps;
+    if (history.length > 0) {
+      const lastT = history[history.length - 1];
+      if (now - lastT <= SHORT_INTERVAL_THRESHOLD_MS) {
+        consecutiveShortCount = 1;
+        for (let i = history.length - 1; i >= 1; i--) {
+          if (history[i] - history[i - 1] <= SHORT_INTERVAL_THRESHOLD_MS) {
+            consecutiveShortCount++;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    // If this is the 3rd consecutive short-interval prompt, activate 10-minute cooldown for subsequent clicks
+    if (consecutiveShortCount >= MAX_CONSECUTIVE_SHORT_ATTEMPTS - 1 && history.length >= MAX_CONSECUTIVE_SHORT_ATTEMPTS - 1) {
+      rateLimit.timestamps.push(now);
+      rateLimit.cooldownUntil = now + DEPOSIT_COOLDOWN_MS;
+      runtimeLog(`[PayHero RateLimit] User ${user.username} (${user.id}) completed 3 consecutive short-interval deposit prompts. 10-minute cooldown activated.`);
+    } else {
+      rateLimit.timestamps.push(now);
+    }
 
     const { amount, phone_number, phone } = req.body || {};
     const rawPhone = phone_number || phone || user.phone;
@@ -2037,14 +2112,14 @@ app.post('/api/payments/stk-push', async (req, res) => {
     );
     if (existingPendingDeposit) {
       const ageMs = Date.now() - new Date(existingPendingDeposit.createdAt || 0).getTime();
-      if (ageMs > 10000) {
+      if (ageMs > 15000) {
         // Automatically expire previous uncompleted prompt so the user isn't stuck
         failDepositTransaction(existingPendingDeposit, 'Superseded by new deposit request');
         void saveStore();
         publishPaymentUpdate(existingPendingDeposit);
       } else {
         return res.status(409).json({
-          message: 'An M-Pesa prompt was recently sent to your phone. Please check your phone or wait 10 seconds.',
+          message: 'An M-Pesa prompt was recently sent to your phone. Please check your phone or wait 15 seconds.',
           checkoutRequestId: existingPendingDeposit.checkoutRequestId || existingPendingDeposit.reference,
           status: existingPendingDeposit.status,
         });

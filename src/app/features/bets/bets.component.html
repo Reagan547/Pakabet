@@ -1,5 +1,8 @@
 <div class="pb-shell">
 
+  <!-- Tap-anywhere backdrop for mobile menu & profile dropdown -->
+  <div class="pb-backdrop" *ngIf="showProfileMenu() || mobileMenuOpen()" (click)="closeAllMenus()"></div>
+
   <!-- ══ M-PESA DEPOSIT STRIP (phone) ══════════════════════════════════════ -->
   <button type="button" class="pb-paybill phone-only" (click)="openDeposit()">
     <span class="pb-paybill-text">Deposit via <strong>M-PESA</strong></span>
@@ -51,17 +54,44 @@
 
       <div class="pb-profile-menu pb-profile-menu-m" *ngIf="showProfileMenu() && isAuthenticated">
         <div class="pb-profile-head">
-          <span class="pb-avatar">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
-          <div>
-            <strong>{{ currentUser()?.username || 'Player' }}</strong>
-            <small>KSh {{ userBalance() | number:'1.2-2' }}</small>
+          <span class="pb-avatar lg">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+          <div class="pb-profile-head-info">
+            <strong class="pb-profile-username">{{ currentUser()?.username || 'Player' }}</strong>
+            <small class="pb-profile-balance">KSh {{ userBalance() | number:'1.2-2' }}</small>
           </div>
         </div>
-        <button type="button" (click)="openMyBetsModal()">My Bets &amp; History</button>
-        <button type="button" (click)="openAccountModal()">Account Profile</button>
-        <button type="button" (click)="goToWallet()">Wallet &amp; Withdraw</button>
-        <button type="button" (click)="openDeposit()">Deposit Funds</button>
-        <button type="button" class="pb-menu-logout" (click)="logout()">Log Out</button>
+        <div class="pb-profile-quick-actions">
+          <button type="button" class="pb-profile-action-btn deposit" (click)="openDeposit()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Deposit</span>
+          </button>
+          <button type="button" class="pb-profile-action-btn withdraw" (click)="openWithdraw()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/></svg>
+            <span>Withdraw</span>
+          </button>
+        </div>
+        <div class="pb-profile-links">
+          <button type="button" (click)="goToWallet()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M16 12h.01"/></svg>
+            <span>Wallet &amp; History</span>
+          </button>
+          <button type="button" (click)="openMyBetsModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>My Bets</span>
+          </button>
+          <button type="button" (click)="openAccountModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Account Profile</span>
+          </button>
+          <button type="button" class="pb-link-aviator" (click)="goToAviator()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8202a" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            <span>Play Aviator</span>
+          </button>
+        </div>
+        <button type="button" class="pb-menu-logout" (click)="logout()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Log Out</span>
+        </button>
       </div>
     </div>
 
@@ -105,17 +135,44 @@
           </button>
           <div class="pb-profile-menu" *ngIf="showProfileMenu()">
             <div class="pb-profile-head">
-              <span class="pb-avatar">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
-              <div>
-                <strong>{{ currentUser()?.username || 'Player' }}</strong>
-                <small>KSh {{ userBalance() | number:'1.2-2' }}</small>
+              <span class="pb-avatar lg">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+              <div class="pb-profile-head-info">
+                <strong class="pb-profile-username">{{ currentUser()?.username || 'Player' }}</strong>
+                <small class="pb-profile-balance">KSh {{ userBalance() | number:'1.2-2' }}</small>
               </div>
             </div>
-            <button type="button" (click)="openMyBetsModal()">My Bets &amp; History</button>
-            <button type="button" (click)="openAccountModal()">Account Profile</button>
-            <button type="button" (click)="goToWallet()">Wallet &amp; Withdraw</button>
-            <button type="button" (click)="openDeposit()">Deposit Funds</button>
-            <button type="button" class="pb-menu-logout" (click)="logout()">Log Out</button>
+            <div class="pb-profile-quick-actions">
+              <button type="button" class="pb-profile-action-btn deposit" (click)="openDeposit()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+                <span>Deposit</span>
+              </button>
+              <button type="button" class="pb-profile-action-btn withdraw" (click)="openWithdraw()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/></svg>
+                <span>Withdraw</span>
+              </button>
+            </div>
+            <div class="pb-profile-links">
+              <button type="button" (click)="goToWallet()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M16 12h.01"/></svg>
+                <span>Wallet &amp; History</span>
+              </button>
+              <button type="button" (click)="openMyBetsModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span>My Bets</span>
+              </button>
+              <button type="button" (click)="openAccountModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Account Profile</span>
+              </button>
+              <button type="button" class="pb-link-aviator" (click)="goToAviator()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8202a" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                <span>Play Aviator</span>
+              </button>
+            </div>
+            <button type="button" class="pb-menu-logout" (click)="logout()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Log Out</span>
+            </button>
           </div>
         </div>
       </div>
@@ -197,11 +254,9 @@
     <!-- ── LEFT SIDEBAR (desktop) ───────────────────────────────────────── -->
     <aside class="pb-left laptop-only" aria-label="Leagues">
       <div class="pb-quick-grid">
-        <button *ngFor="let tile of gameTiles.slice(1, 7)" type="button" class="pb-quick-tile"
-                (click)="openGameTile(tile)"
-                [style.background]="'linear-gradient(150deg,' + tile.from + ',' + tile.to + ')'">
-          <img class="pb-quick-icon" [src]="tile.icon" alt="" loading="lazy">
-          <span class="pb-quick-label">{{ tile.label }}</span>
+        <button *ngFor="let tile of leftQuickTiles" type="button" class="pb-quick-tile"
+                (click)="openQuickTile(tile)" [attr.aria-label]="tile.label">
+          <img class="pb-quick-img" [src]="tile.image" [alt]="tile.label" loading="lazy">
         </button>
       </div>
 
@@ -261,7 +316,7 @@
       <!-- aviator feature strip -->
       <button type="button" class="pb-aviator-strip" (click)="goToAviator()">
         <span class="pb-aviator-logo">
-          <img src="/assets/images/bets-aviator-button.jpg" alt="Aviator">
+          <img src="/assets/games/photos/aviator.jpg" alt="Aviator">
         </span>
         <span class="pb-aviator-copy">
           <span class="pb-aviator-badges">
@@ -281,7 +336,9 @@
           <button *ngFor="let tab of contentTabs" type="button"
                   class="pb-content-tab" [class.active]="activeContentTab() === tab.id"
                   (click)="setContentTab(tab.id)">
-            <span class="pb-flame" *ngIf="tab.flame">🔥</span>{{ tab.label }}
+            <span class="pb-flame" *ngIf="tab.flame">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="#f97316"><path d="M12 2c3 4 5 6 5 9a5 5 0 0 1-10 0c0-3 2-4 5-9z"/></svg>
+            </span>{{ tab.label }}
           </button>
         </div>
 
@@ -293,16 +350,28 @@
           </button>
         </div>
 
-        <div class="pb-game-grid">
-          <button *ngFor="let game of visibleCasinoGames()" type="button" class="pb-game-card"
-                  (click)="openCasinoGame(game)"
-                  [style.background]="'linear-gradient(155deg,' + game.from + ',' + game.to + ')'">
-            <span class="pb-game-live" *ngIf="game.live">LIVE</span>
-            <img class="pb-game-icon" [src]="game.icon" alt="" loading="lazy">
-            <strong class="pb-game-name">{{ game.name }}</strong>
-            <small class="pb-game-tag">{{ game.tagline }}</small>
-            <span class="pb-game-play">Play ›</span>
-          </button>
+        <div class="pb-game-rail-container">
+          <div class="pb-game-grid">
+            <button *ngFor="let game of visibleCasinoGames()" type="button" class="pb-game-card"
+                    [class.has-photo]="game.photo"
+                    (click)="openCasinoGame(game)"
+                    [style.background]="game.photo ? '#000000' : 'linear-gradient(155deg,' + game.from + ',' + game.to + ')'">
+              <ng-container *ngIf="game.photo; else vectorCard">
+                <img class="pb-game-photo" [src]="game.photo" [alt]="game.name" loading="lazy">
+                <span class="pb-game-play-hover">Play</span>
+              </ng-container>
+              <ng-template #vectorCard>
+                <span class="pb-game-live" *ngIf="game.live">LIVE</span>
+                <img class="pb-game-icon" [src]="game.icon" alt="" loading="lazy">
+                <strong class="pb-game-name">{{ game.name }}</strong>
+                <small class="pb-game-tag">{{ game.tagline }}</small>
+                <span class="pb-game-play">Play ›</span>
+              </ng-template>
+            </button>
+            <button class="pb-game-next" type="button" aria-label="More games" (click)="setContentTab('crash')">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
         </div>
       </section>
 

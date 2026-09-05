@@ -9,6 +9,9 @@
 html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: #0b0e14;
   color: #f8fafc;

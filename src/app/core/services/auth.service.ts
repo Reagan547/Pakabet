@@ -225,7 +225,33 @@ export class AuthService {
       { headers }
     ).pipe(
       timeout(15000),
-      catchError(err => throwError(() => this.extractErrorMessage(err)))
+      catchError(err => {
+        const message = this.extractErrorMessage(err);
+        const errorObj = {
+          message,
+          code: err?.error?.code,
+          retryAfterSeconds: err?.error?.retryAfterSeconds,
+          cooldownUntil: err?.error?.cooldownUntil,
+          status: err?.status,
+          toString() { return message; }
+        };
+        return throwError(() => errorObj);
+      })
+    );
+  }
+
+  public getDepositCooldown(): Observable<{ inCooldown: boolean; retryAfterSeconds: number; cooldownUntil: number | null }> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<{ inCooldown: boolean; retryAfterSeconds?: number; cooldownUntil?: number | null }>(
+      `${this.baseUrl}/payments/cooldown`,
+      { headers }
+    ).pipe(
+      map(res => ({
+        inCooldown: !!res?.inCooldown,
+        retryAfterSeconds: Number(res?.retryAfterSeconds) || 0,
+        cooldownUntil: res?.cooldownUntil || null,
+      })),
+      catchError(() => of({ inCooldown: false, retryAfterSeconds: 0, cooldownUntil: null }))
     );
   }
 

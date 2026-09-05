@@ -647,12 +647,17 @@
         <h2 class="form-heading">Deposit</h2>
         <p class="form-subheading">Send money into your account</p>
 
-        <!-- PRESET PILLS: +1,000 | +2,000 | +5,000 | +10,000 -->
+        <!-- PRESET PILLS: dynamic minimum + standard tiers -->
         <div class="preset-pills-grid">
-          <button type="button" class="preset-pill-btn" (click)="addDepositAmount(1000)">+1,000</button>
+          <button type="button" class="preset-pill-btn" (click)="setDepositAmount(minDepositAmount())">+{{ minDepositAmount() | number }}</button>
           <button type="button" class="preset-pill-btn" (click)="addDepositAmount(2000)">+2,000</button>
           <button type="button" class="preset-pill-btn" (click)="addDepositAmount(5000)">+5,000</button>
           <button type="button" class="preset-pill-btn" (click)="addDepositAmount(10000)">+10,000</button>
+        </div>
+
+        <!-- COOLDOWN BANNER IF IN RATE LIMIT LOCKOUT -->
+        <div *ngIf="depositCooldownSeconds() > 0" class="mpesa-status-alert failed" style="margin-bottom: 12px; font-weight: 700;">
+          ⏳ Cooldown active: Too many rapid deposit prompts. Please wait {{ formatCooldown(depositCooldownSeconds()) }} before trying again.
         </div>
 
         <!-- PHONE NUMBER INPUT GROUP -->
@@ -676,9 +681,9 @@
           <input type="number" 
                  [ngModel]="depositVal()" 
                  (ngModelChange)="depositVal.set($event)" 
-                 placeholder="999" 
+                 [placeholder]="minDepositAmount().toString()" 
                  class="amount-text-input" />
-          <div class="form-helper-text">Minimum KES 999.</div>
+          <div class="form-helper-text">Minimum KES {{ minDepositAmount() | number }}.</div>
         </div>
 
         <!-- STATUS / STK MESSAGES IF ANY -->
@@ -689,8 +694,13 @@
         <!-- BOTTOM ACTION BUTTONS: BACK & DEPOSIT -->
         <div class="form-actions-row">
           <button type="button" class="action-btn-back" (click)="showWalletModal.set(false)">BACK</button>
-          <button type="button" class="action-btn-green" [disabled]="mpesaStatus() === 'sending'" (click)="submitDeposit()">
-            {{ mpesaStatus() === 'sending' ? 'Sending...' : 'Deposit' }}
+          <button type="button" class="action-btn-green" [disabled]="mpesaStatus() === 'sending' || depositCooldownSeconds() > 0" (click)="submitDeposit()">
+            <ng-container *ngIf="depositCooldownSeconds() > 0">
+              Try in {{ formatCooldown(depositCooldownSeconds()) }}
+            </ng-container>
+            <ng-container *ngIf="depositCooldownSeconds() <= 0">
+              {{ mpesaStatus() === 'sending' ? 'Sending...' : 'Deposit' }}
+            </ng-container>
           </button>
         </div>
       </div>

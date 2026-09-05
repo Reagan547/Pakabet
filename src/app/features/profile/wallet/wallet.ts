@@ -38,10 +38,24 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
 
           <!-- QUICK PRESETS -->
           <div class="presets-row">
-            <button type="button" class="preset-pill" (click)="setDepositAmount(999)">+999</button>
+            <button type="button" class="preset-pill" (click)="setDepositAmount(minDepositAmount)">+{{ minDepositAmount | number }}</button>
             <button type="button" class="preset-pill" (click)="setDepositAmount(2000)">+2,000</button>
             <button type="button" class="preset-pill" (click)="setDepositAmount(5000)">+5,000</button>
             <button type="button" class="preset-pill" (click)="setDepositAmount(10000)">+10,000</button>
+          </div>
+
+          <!-- COOLDOWN BANNER IF IN RATE LIMIT LOCKOUT -->
+          <div *ngIf="depositCooldownSeconds > 0" class="cooldown-box">
+            <div class="cooldown-head">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Deposit Cooldown Active</span>
+            </div>
+            <p class="cooldown-desc">
+              Too many rapid deposit prompts. To prevent M-Pesa provider restrictions, please wait before trying again:
+            </p>
+            <div class="cooldown-timer">
+              {{ formatCooldown(depositCooldownSeconds) }}
+            </div>
           </div>
 
           <!-- PHONE NUMBER FIELD -->
@@ -70,7 +84,14 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
           <!-- BOTTOM ACTION BUTTONS -->
           <div class="actions-row">
             <button type="button" class="btn-back" (click)="goBack()">BACK</button>
-            <button type="button" class="btn-green" (click)="submitDeposit()">Deposit</button>
+            <button type="button" class="btn-green" [disabled]="isDepositSubmitting || depositCooldownSeconds > 0" (click)="submitDeposit()">
+              <ng-container *ngIf="depositCooldownSeconds > 0">
+                Try in {{ formatCooldown(depositCooldownSeconds) }}
+              </ng-container>
+              <ng-container *ngIf="depositCooldownSeconds <= 0">
+                {{ isDepositSubmitting ? 'Initiating...' : 'Deposit' }}
+              </ng-container>
+            </button>
           </div>
         </div>
 
@@ -349,6 +370,37 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
       line-height: 1.45;
     }
 
+    .cooldown-box {
+      margin: 8px 0 16px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(255, 212, 0, .08);
+      border: 1px solid rgba(255, 212, 0, .32);
+      color: #fff;
+    }
+    .cooldown-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--wk-gold);
+      font-size: 13.5px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .cooldown-desc {
+      margin: 0 0 10px;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: var(--wk-muted);
+    }
+    .cooldown-timer {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--wk-gold);
+      font-variant-numeric: tabular-nums;
+    }
+
     .alert-msg {
       margin: 4px 0 14px;
       padding: 11px 13px;
@@ -489,7 +541,10 @@ export class WalletComponent implements OnInit, OnDestroy {
   public depositVal: number = 999;
   public minDepositAmount: number = 999;
   public withdrawVal: number = 200;
+  public isDepositSubmitting: boolean = false;
   public isWithdrawSubmitting: boolean = false;
+  public depositCooldownSeconds: number = 0;
+  private depositCooldownTimer: any = null;
   public depositStatusMsg: string = '';
   public withdrawStatusMsg: string = '';
   public depositStatusType: 'info' | 'error' | 'success' = 'info';
@@ -498,6 +553,35 @@ export class WalletComponent implements OnInit, OnDestroy {
   public withdrawPopupVisible = false;
   public withdrawPopupTitle = 'Withdrawal Submitted';
   public withdrawPopupMsg = '';
+
+  formatCooldown(totalSeconds: number): string {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  startCooldown(seconds: number): void {
+    this.clearCooldownTimer();
+    this.depositCooldownSeconds = Math.max(1, Math.ceil(seconds));
+    this.depositCooldownTimer = setInterval(() => {
+      if (this.depositCooldownSeconds > 1) {
+        this.depositCooldownSeconds--;
+      } else {
+        this.depositCooldownSeconds = 0;
+        this.clearCooldownTimer();
+        if (this.depositStatusType === 'error' && this.depositStatusMsg.includes('rapid')) {
+          this.depositStatusMsg = '';
+        }
+      }
+    }, 1000);
+  }
+
+  clearCooldownTimer(): void {
+    if (this.depositCooldownTimer) {
+      clearInterval(this.depositCooldownTimer);
+      this.depositCooldownTimer = null;
+    }
+  }
 
   ngOnInit() {
     const url = this.router.url;
@@ -511,11 +595,30 @@ export class WalletComponent implements OnInit, OnDestroy {
 
     const token = this.authService.getToken();
     if (token) this.gameSocket.connect(token);
-    this.authService.getPaymentConfig().subscribe(config => {
-      this.minDepositAmount = config.minDepositAmount;
-      if (this.depositVal === 999) this.depositVal = config.minDepositAmount;
+
+    this.authService.getDepositCooldown().subscribe(res => {
+      if (res.inCooldown && res.retryAfterSeconds > 0) {
+        this.startCooldown(res.retryAfterSeconds);
+      }
     });
+
+    this.authService.getPaymentConfig().subscribe(config => {
+      const oldMin = this.minDepositAmount;
+      this.minDepositAmount = config.minDepositAmount;
+      if (!this.depositVal || this.depositVal === oldMin || this.depositVal < this.minDepositAmount) {
+        this.depositVal = config.minDepositAmount;
+      }
+    });
+
     this.subscriptions.push(
+      this.gameSocket.paymentConfig$.subscribe(config => {
+        if (!config?.minDepositAmount) return;
+        const oldMin = this.minDepositAmount;
+        this.minDepositAmount = config.minDepositAmount;
+        if (!this.depositVal || this.depositVal === oldMin || this.depositVal < this.minDepositAmount) {
+          this.depositVal = config.minDepositAmount;
+        }
+      }),
       this.authService.currentUser$.subscribe(user => {
         if (user?.phone_number) {
           const cleanPhone = (user.phone_number || '').replace(/^(\+?254|0)+/, '');
@@ -552,6 +655,7 @@ export class WalletComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.clearStkStatusPolling();
+    this.clearCooldownTimer();
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
@@ -590,6 +694,11 @@ export class WalletComponent implements OnInit, OnDestroy {
   }
 
   submitDeposit() {
+    if (this.depositCooldownSeconds > 0) {
+      this.depositStatusMsg = `Too many rapid deposit prompts. Please wait ${this.formatCooldown(this.depositCooldownSeconds)} before trying again.`;
+      this.depositStatusType = 'error';
+      return;
+    }
     if (!this.depositVal || this.depositVal < this.minDepositAmount) {
       this.depositStatusMsg = `Minimum deposit is KES ${this.minDepositAmount.toLocaleString()}.`;
       this.depositStatusType = 'error';
@@ -604,21 +713,28 @@ export class WalletComponent implements OnInit, OnDestroy {
     }
     const fullPhone = `254${cleanDigits}`;
 
+    this.isDepositSubmitting = true;
     this.depositStatusMsg = 'Initiating STK Push...';
     this.depositStatusType = 'info';
 
     this.authService.initiateMpesaSTKPush(this.depositVal, fullPhone)
       .subscribe({
         next: (res) => {
+          this.isDepositSubmitting = false;
           this.depositStatusMsg = '📱 Check your phone! Enter your M-Pesa PIN to complete payment.';
           this.depositStatusType = 'info';
           const reqId = res.checkoutRequestId;
           if (reqId) this.startMpesaStatusPolling(reqId);
         },
-        error: (err) => {
+        error: (err: any) => {
+          this.isDepositSubmitting = false;
           const msg = typeof err === 'string' ? err : (err?.message || 'STK Push failed. Please try again.');
           this.depositStatusMsg = `❌ ${msg}`;
           this.depositStatusType = 'error';
+          if (err?.code === 'RATE_LIMIT_COOLDOWN' || err?.retryAfterSeconds || err?.status === 429) {
+            const cooldownSec = Number(err?.retryAfterSeconds) || 600;
+            this.startCooldown(cooldownSec);
+          }
         }
       });
   }
