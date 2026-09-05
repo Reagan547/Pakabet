@@ -113,6 +113,20 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
           </div>
 
+          <!-- PROMO CODE (REGISTER ONLY, OPTIONAL) -->
+          <div *ngIf="activeTab === 'register'" class="form-group margin-top-sm">
+            <input
+              type="text"
+              [(ngModel)]="promoCode"
+              name="promoCode"
+              class="standard-input"
+              placeholder="Promo code (optional)"
+              autocapitalize="characters"
+              (ngModelChange)="cleanPromoCode($event)"
+            />
+            <div class="field-hint">Got a promo code? Enter it to claim the offer. You can leave this blank.</div>
+          </div>
+
           <!-- SUBMIT BUTTON -->
           <button
             type="submit"
@@ -614,6 +628,8 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
   phone = '';
   password = '';
   confirmPassword = '';
+  // Optional promo code entered at sign-up. Never required.
+  promoCode = '';
   showPassword = false;
 
   // Forgot password reset fields
@@ -624,6 +640,7 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
   successMessage: string | null = null;
   isSubmitting = false;
   private loginWatchdog: ReturnType<typeof setTimeout> | null = null;
+  private resetWatchdog: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit() {
     if (this.route.snapshot.queryParamMap.get('mode') === 'register') this.setTab('register');
@@ -643,6 +660,9 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
     }
     if (this.loginWatchdog) {
       clearTimeout(this.loginWatchdog);
+    }
+    if (this.resetWatchdog) {
+      clearTimeout(this.resetWatchdog);
     }
   }
 
@@ -680,6 +700,10 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
       this.isLoading = false;
       this.isFadingOut = false;
     }, 250);
+  }
+
+  cleanPromoCode(value: string) {
+    this.promoCode = (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
   }
 
   toggleShowPassword() {
@@ -787,7 +811,8 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
     this.authService.register({
       username: fullPhone,
       phone_number: fullPhone,
-      password: this.password
+      password: this.password,
+      promo_code: this.promoCode.trim() || undefined
     }).subscribe({
       next: () => {
         this.isSubmitting = false;
@@ -830,8 +855,22 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const succeed = () => {
+    // Backstop for the two chained requests below. Without it a stalled API
+    // leaves the button reading "RESETTING..." with no way out.
+    if (this.resetWatchdog) clearTimeout(this.resetWatchdog);
+    this.resetWatchdog = setTimeout(() => {
+      if (!this.isSubmitting) return;
       this.isSubmitting = false;
+      this.errorMessage = 'The server is taking too long to respond. It may be waking up — please try again.';
+    }, 45000);
+
+    const finish = () => {
+      this.isSubmitting = false;
+      if (this.resetWatchdog) { clearTimeout(this.resetWatchdog); this.resetWatchdog = null; }
+    };
+
+    const succeed = () => {
+      finish();
       this.successMessage = 'Password reset successfully. Log in with your new password.';
       this.activeTab = 'login';
       this.password = '';
@@ -846,7 +885,7 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
         this.authService.resetPassword({ phone_number: rawPhone, new_password: this.newPassword }).subscribe({
           next: succeed,
           error: (err) => {
-            this.isSubmitting = false;
+            finish();
             this.errorMessage = typeof err === 'string' ? err : 'Password reset failed. That phone number is not registered.';
           }
         });

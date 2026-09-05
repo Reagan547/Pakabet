@@ -1856,7 +1856,7 @@ io.on('connection', (socket) => {
 
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { password, phone, username, email, phone_number } = req.body || {};
+    const { password, phone, username, email, phone_number, promo_code } = req.body || {};
     if (!password) return res.status(400).json({ message: 'Password is required' });
     if (password.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' });
 
@@ -1868,7 +1868,7 @@ app.post('/api/auth/register', async (req, res) => {
     if (hasPhone) return res.status(409).json({ message: 'Phone already registered' });
 
     const safeUsername = (username || '').toString().trim() || `Player${normalizedPhone.slice(-4)}`;
-    const normalizedEmail = (email || `${normalizedPhone}@aviator.local`).toString().trim().toLowerCase();
+    const normalizedEmail = (email || `${normalizedPhone}@pakabet.local`).toString().trim().toLowerCase();
     const hasEmail = Array.from(users.values()).some((u) => (u.email || '').toLowerCase() === normalizedEmail);
     if (hasEmail) return res.status(409).json({ message: 'Email already registered' });
 
@@ -1880,6 +1880,8 @@ app.post('/api/auth/register', async (req, res) => {
       phone: normalizedPhone,
       passwordHash: await bcrypt.hash(password, 10),
       role: 'user', isActive: true,
+      // Optional at sign-up; recorded so promotions can be reconciled later.
+      promoCode: (promo_code || '').toString().trim().toUpperCase().slice(0, 12) || null,
       createdAt: new Date().toISOString()
     });
     wallets.set(userId, normalizeWallet({ balance: '0.00', depositCount: 0 }));

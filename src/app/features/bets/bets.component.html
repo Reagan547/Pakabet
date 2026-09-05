@@ -3,14 +3,8 @@
   <!-- Tap-anywhere backdrop for mobile menu & profile dropdown -->
   <div class="pb-backdrop" *ngIf="showProfileMenu() || mobileMenuOpen()" (click)="closeAllMenus()"></div>
 
-  <!-- ══ M-PESA DEPOSIT STRIP (phone) ══════════════════════════════════════ -->
-  <button type="button" class="pb-paybill phone-only" (click)="openDeposit()">
-    <span class="pb-paybill-text">Deposit via <strong>M-PESA</strong></span>
-    <span class="pb-paybill-cta">Click to deposit</span>
-  </button>
-
   <!-- ══ HEADER ════════════════════════════════════════════════════════════ -->
-  <header class="pb-header">
+  <header class="pb-header" [class.pb-menu-open]="showProfileMenu() || mobileMenuOpen()">
 
     <!-- phone header: menu / search / logo / my bets / profile -->
     <div class="pb-mhead phone-only">
@@ -43,7 +37,8 @@
         <span class="pb-mhead-lbl">My Bets</span>
       </button>
 
-      <button type="button" class="pb-mhead-item" (click)="isAuthenticated ? toggleProfileMenu() : goToLogin()"
+      <button type="button" class="pb-mhead-item pb-mhead-balance" [class.is-guest]="!isAuthenticated"
+              (click)="isAuthenticated ? toggleProfileMenu() : goToLogin()"
               aria-label="Account">
         <span class="pb-mhead-ico">
           <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.9">
@@ -86,6 +81,14 @@
           <button type="button" class="pb-link-aviator" (click)="goToAviator()">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8202a" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
             <span>Play Aviator</span>
+          </button>
+          <button type="button" class="pb-link-admin" *ngIf="isAdmin" (click)="goToAdmin()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4z"/></svg>
+            <span>Admin Panel</span>
+          </button>
+          <button type="button" class="pb-link-admin" *ngIf="isAdmin" (click)="goToPredator()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+            <span>Predator Console</span>
           </button>
         </div>
         <button type="button" class="pb-menu-logout" (click)="logout()">
@@ -167,6 +170,14 @@
               <button type="button" class="pb-link-aviator" (click)="goToAviator()">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8202a" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 <span>Play Aviator</span>
+              </button>
+              <button type="button" class="pb-link-admin" *ngIf="isAdmin" (click)="goToAdmin()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4z"/></svg>
+                <span>Admin Panel</span>
+              </button>
+              <button type="button" class="pb-link-admin" *ngIf="isAdmin" (click)="goToPredator()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+                <span>Predator Console</span>
               </button>
             </div>
             <button type="button" class="pb-menu-logout" (click)="logout()">
@@ -677,6 +688,77 @@
   </div>
 
   <!-- ══ IN-PAGE DEPOSIT MODAL ═══════════════════════════════════════════ -->
+  <!-- ══ WITHDRAW MODAL ════════════════════════════════════════════════════ -->
+  <div class="pb-modal-backdrop" *ngIf="showWithdrawModal()" (click)="closeWithdrawModal()">
+    <section class="pb-modal pb-deposit-modal" role="dialog" aria-modal="true" aria-label="Withdraw to M-Pesa" (click)="$event.stopPropagation()">
+      <div class="pb-modal-head pb-withdraw-modal-head">
+        <div class="pb-deposit-title-wrap">
+          <h2>Withdraw to M-PESA</h2>
+          <span class="pb-withdraw-badge">Balance KSh {{ userBalance() | number:'1.2-2' }}</span>
+        </div>
+        <button type="button" class="pb-modal-close" (click)="closeWithdrawModal()">&times;</button>
+      </div>
+      <div class="pb-modal-body pb-deposit-modal-body">
+
+        <div class="pb-deposit-presets">
+          <button type="button" class="pb-preset-pill" (click)="setWithdrawVal(200)">200</button>
+          <button type="button" class="pb-preset-pill" (click)="addWithdrawVal(500)">+500</button>
+          <button type="button" class="pb-preset-pill" (click)="addWithdrawVal(1000)">+1,000</button>
+          <button type="button" class="pb-preset-pill" (click)="setWithdrawVal(userBalance())">All</button>
+        </div>
+
+        <div class="pb-form-group">
+          <label for="pb-withdraw-phone">M-Pesa Phone Number</label>
+          <div class="pb-input-addon">
+            <span class="pb-addon-prefix">+254</span>
+            <input id="pb-withdraw-phone" type="tel" [(ngModel)]="withdrawPhone" placeholder="7XXXXXXXX"
+                   class="pb-text-input" autocomplete="tel" (ngModelChange)="cleanWithdrawPhone($event)">
+          </div>
+        </div>
+
+        <div class="pb-form-group">
+          <label for="pb-withdraw-amount">Withdrawal Amount (KES)</label>
+          <div class="pb-input-addon">
+            <span class="pb-addon-prefix">KES</span>
+            <input id="pb-withdraw-amount" type="number" [ngModel]="withdrawVal()" (ngModelChange)="setWithdrawVal($event)"
+                   min="200" max="300000" placeholder="200" class="pb-text-input">
+          </div>
+          <span class="pb-form-hint">Minimum KES 200, maximum KES 300,000 per day.</span>
+        </div>
+
+        <div *ngIf="withdrawStatusMsg()" class="pb-deposit-status"
+             [class.error]="withdrawStatusType() === 'error'"
+             [class.success]="withdrawStatusType() === 'success'"
+             [class.info]="withdrawStatusType() === 'info'">
+          {{ withdrawStatusMsg() }}
+        </div>
+
+        <button type="button" class="pb-withdraw-submit-btn" [disabled]="isWithdrawSubmitting()" (click)="submitWithdraw()">
+          {{ isWithdrawSubmitting() ? 'Submitting…' : ('Withdraw KES ' + (withdrawVal() | number)) }}
+        </button>
+
+        <div class="pb-deposit-alt-links">
+          <button type="button" class="pb-wallet-link" (click)="closeWithdrawModal(); goToWallet()">
+            <span>Open Wallet &amp; Transactions History</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ══ WITHDRAWAL POPUP (admin-authored copy) ════════════════════════════ -->
+  <div class="pb-modal-backdrop" *ngIf="withdrawPopupVisible()" (click)="closeWithdrawPopup()">
+    <section class="pb-withdraw-popup" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="pb-withdraw-popup-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#12a04a" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <h3 class="pb-withdraw-popup-title">{{ withdrawPopupTitle() }}</h3>
+      <p class="pb-withdraw-popup-body">{{ withdrawPopupMsg() }}</p>
+      <button type="button" class="pb-withdraw-popup-btn" (click)="closeWithdrawPopup()">OK, Got it</button>
+    </section>
+  </div>
+
   <div class="pb-modal-backdrop" *ngIf="showDepositModal()" (click)="closeDepositModal()">
     <section class="pb-modal pb-deposit-modal" role="dialog" aria-modal="true" aria-label="Deposit via M-Pesa" (click)="$event.stopPropagation()">
       <div class="pb-modal-head pb-deposit-modal-head">

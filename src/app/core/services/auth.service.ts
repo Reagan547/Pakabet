@@ -137,12 +137,13 @@ export class AuthService {
     return 'Connection to server failed. Please ensure backend is running.';
   }
 
-  public register(credentials: { username: string; phone_number?: string; password: string }): Observable<AuthResponse> {
+  public register(credentials: { username: string; phone_number?: string; password: string; promo_code?: string }): Observable<AuthResponse> {
     const phone = credentials.phone_number || credentials.username;
     return this.http.post<any>(`${this.apiUrl}/register`, {
       username: credentials.username,
       phone,
       password: credentials.password,
+      promo_code: credentials.promo_code,
     }).pipe(
       switchMap((res) => {
         if (res && res.token && res.user) {
@@ -189,6 +190,10 @@ export class AuthService {
       phone: data.phone_number,
       password: data.new_password,
     }).pipe(
+      // Without this the request hangs indefinitely whenever the API is cold,
+      // leaving the reset button stuck on "RESETTING...". Login already
+      // guards itself the same way.
+      timeout(20000),
       catchError(err => throwError(() => this.extractErrorMessage(err)))
     );
   }

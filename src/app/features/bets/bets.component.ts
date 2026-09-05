@@ -104,6 +104,20 @@ export class BetsComponent implements OnInit, OnDestroy {
   readonly depositStatusMsg = signal('');
   readonly depositStatusType = signal<'info' | 'error' | 'success'>('info');
 
+  // In-page withdraw modal state. Withdrawing used to navigate away to
+  // /withdraw, which read as the landing page "exiting" under the player.
+  readonly showWithdrawModal = signal(false);
+  withdrawPhone = '';
+  readonly withdrawVal = signal<number>(200);
+  readonly isWithdrawSubmitting = signal(false);
+  readonly withdrawStatusMsg = signal('');
+  readonly withdrawStatusType = signal<'info' | 'error' | 'success'>('info');
+  // The popup text is authored by an admin per player, so it is whatever the
+  // withdraw response hands back rather than anything hardcoded here.
+  readonly withdrawPopupVisible = signal(false);
+  readonly withdrawPopupTitle = signal('Withdrawal Submitted');
+  readonly withdrawPopupMsg = signal('');
+
   // Landing-page controls. Every one of these feeds a filter or an action so
   // nothing on the page is decorative.
   readonly searchOpen = signal(false);
@@ -365,6 +379,7 @@ export class BetsComponent implements OnInit, OnDestroy {
     Number((Math.max(0, this.stake || 0) * this.combinedOdds()).toFixed(2)));
 
   get isAuthenticated(): boolean { return this.auth.hasToken(); }
+  get isAdmin(): boolean { return this.auth.isAdmin(); }
 
   // ── Derived markets ───────────────────────────────────────────────────────
   // Double chance and GG/NG are computed from the 1X2 prices so the alternative
@@ -770,10 +785,94 @@ export class BetsComponent implements OnInit, OnDestroy {
   }
 
   openWithdraw(): void {
+    if (!this.isAuthenticated) { this.goToLogin(); return; }
     this.showProfileMenu.set(false);
     this.closeMobileMenu();
-    localStorage.setItem('walletReturnUrl', '/bets');
-    this.router.navigate(['/withdraw'], { state: { returnUrl: '/bets' } });
+
+    const cur = this.currentUser();
+    if (cur?.phone_number && !this.withdrawPhone) {
+      this.withdrawPhone = (cur.phone_number || '').replace(/\D/g, '').replace(/^(254|0)+/, '');
+    }
+    this.withdrawStatusMsg.set('');
+    this.withdrawPopupVisible.set(false);
+    this.showWithdrawModal.set(true);
+  }
+
+  closeWithdrawModal(): void {
+    this.showWithdrawModal.set(false);
+    this.withdrawStatusMsg.set('');
+  }
+
+  closeWithdrawPopup(): void {
+    this.withdrawPopupVisible.set(false);
+    this.withdrawPopupMsg.set('');
+  }
+
+  setWithdrawVal(val: any): void { this.withdrawVal.set(Number(val) || 0); }
+  addWithdrawVal(delta: number): void { this.withdrawVal.update(v => (v || 0) + delta); }
+
+  cleanWithdrawPhone(val: string): void {
+    this.withdrawPhone = (val || '').replace(/\D/g, '').replace(/^(254|0)+/, '').slice(0, 9);
+  }
+
+  submitWithdraw(): void {
+    const amount = this.withdrawVal();
+    if (!amount || amount < 200) {
+      this.withdrawStatusMsg.set('Minimum withdrawal is KES 200.');
+      this.withdrawStatusType.set('error');
+      return;
+    }
+    if (amount > 300000) {
+      this.withdrawStatusMsg.set('Maximum withdrawal is KES 300,000.');
+      this.withdrawStatusType.set('error');
+      return;
+    }
+    if (amount > this.userBalance()) {
+      this.withdrawStatusMsg.set(`Insufficient balance. Your balance is KES ${this.userBalance().toFixed(2)}.`);
+      this.withdrawStatusType.set('error');
+      return;
+    }
+    const digits = (this.withdrawPhone || '').replace(/\D/g, '').replace(/^(254|0)+/, '');
+    if (!digits || digits.length < 9) {
+      this.withdrawStatusMsg.set('Please enter a valid M-Pesa phone number (e.g. 7XXXXXXXX).');
+      this.withdrawStatusType.set('error');
+      return;
+    }
+
+    this.isWithdrawSubmitting.set(true);
+    this.withdrawStatusMsg.set('Submitting withdrawal request...');
+    this.withdrawStatusType.set('info');
+
+    this.auth.withdraw(amount, `254${digits}`).subscribe({
+      next: (res: any) => {
+        this.isWithdrawSubmitting.set(false);
+        this.withdrawStatusMsg.set('');
+        this.showWithdrawModal.set(false);
+        this.withdrawPopupTitle.set(res?.popup?.title || 'Withdrawal Submitted');
+        this.withdrawPopupMsg.set(
+          res?.popup?.message || res?.message ||
+          'Your withdrawal request has been submitted and is awaiting review.');
+        this.withdrawPopupVisible.set(true);
+        if (res?.balance !== undefined) this.auth.updateBalance(Number(res.balance));
+      },
+      error: (err: any) => {
+        this.isWithdrawSubmitting.set(false);
+        const msg = typeof err === 'string' ? err
+          : (err?.error?.message || err?.message || 'Withdrawal failed. Please try again.');
+        this.withdrawStatusMsg.set(msg);
+        this.withdrawStatusType.set('error');
+      }
+    });
+  }
+
+  goToAdmin(): void {
+    this.closeAllMenus();
+    this.router.navigate(['/admin']);
+  }
+
+  goToPredator(): void {
+    this.closeAllMenus();
+    this.router.navigate(['/predator']);
   }
 
   // ── Bet slip ──────────────────────────────────────────────────────────────
