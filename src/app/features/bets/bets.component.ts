@@ -469,6 +469,8 @@ export class BetsComponent implements OnInit, OnDestroy {
 
     this.initDepositCooldown();
 
+    this.syncDepositCooldown();
+
     this.oddsTickerTimer = setInterval(() => {
       this.matchesList.update(list =>
         list.map(match => {
@@ -635,6 +637,7 @@ export class BetsComponent implements OnInit, OnDestroy {
       this.depositVal.set(this.minDepositAmount());
     }
     this.depositStatusMsg.set('');
+    this.syncDepositCooldown();
     this.showDepositModal.set(true);
   }
 
@@ -743,6 +746,20 @@ export class BetsComponent implements OnInit, OnDestroy {
       clearInterval(this.stkPollTimer);
       this.stkPollTimer = null;
     }
+  }
+
+  /** Failures are decided server-side (PayHero callback or expiry), so
+   *  localStorage alone cannot know about a cooldown. Reconcile with the API. */
+  private syncDepositCooldown(): void {
+    if (!this.isAuthenticated) return;
+    this.auth.getDepositCooldown().subscribe({
+      next: (res) => {
+        if (res?.inCooldown && res.retryAfterSeconds > 0) {
+          this.startDepositCooldown(res.retryAfterSeconds);
+        }
+      },
+      error: () => { /* offline: fall back to the stored value */ }
+    });
   }
 
   private initDepositCooldown(): void {

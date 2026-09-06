@@ -1239,6 +1239,7 @@ function failDepositTransaction(tx, reason, kind = 'provider_failed') {
   tx.providerFailureReason = providerReason;
   tx.failureReason = playerFacingDepositFailure(providerReason);
   tx.updatedAt = new Date().toISOString();
+  recordDepositFailure(tx.userId);
 }
 
 function isResurrectableExpiredDeposit(tx) {
@@ -1260,6 +1261,7 @@ function creditCompletedDeposit(tx, receiptNumber) {
   wallets.set(tx.userId, wallet);
 
   tx.status = 'completed';
+  clearDepositFailures(tx.userId);
   tx.mpesaReceiptNumber = receiptNumber || tx.mpesaReceiptNumber || null;
   tx.completedAt = new Date().toISOString();
   tx.updatedAt = tx.completedAt;
@@ -2020,6 +2022,51 @@ const depositRateLimits = new Map();
 const SHORT_INTERVAL_THRESHOLD_MS = 60 * 1000; // 60 seconds interval between clicks
 const MAX_CONSECUTIVE_SHORT_ATTEMPTS = 3;      // 3 attempts
 const DEPOSIT_COOLDOWN_MS = 10 * 60 * 1000;    // 10 minutes lockout
+const MAX_FAILED_DEPOSIT_ATTEMPTS = 3;         // 3 prompts that never completed
+const FAILED_DEPOSIT_WINDOW_MS = 5 * 60 * 1000; // failures must be this close to chain
+
+function getDepositRateRecord(userId) {
+  let record = depositRateLimits.get(userId);
+  if (!record) {
+    record = { timestamps: [], cooldownUntil: 0, failCount: 0 };
+    depositRateLimits.set(userId, record);
+  }
+  if (typeof record.failCount !== 'number') record.failCount = 0;
+  return record;
+}
+
+// A prompt the player never completed — rejected by PayHero, expired, or
+// abandoned and superseded. Three in a row and we stop asking PayHero, which
+// is what gets a merchant throttled in the first place.
+function recordDepositFailure(userId) {
+  if (!userId) return;
+  const record = getDepositRateRecord(userId);
+  const now = Date.now();
+  // Only a run of failures close together counts. A failure long after the
+  // previous one starts a fresh streak, so someone who fails once, walks away
+  // and comes back later is never locked out.
+  if (record.lastFailAt && (now - record.lastFailAt) > FAILED_DEPOSIT_WINDOW_MS) {
+    record.failCount = 0;
+  }
+  record.failCount += 1;
+  record.lastFailAt = now;
+  if (record.failCount >= MAX_FAILED_DEPOSIT_ATTEMPTS) {
+    record.cooldownUntil = now + DEPOSIT_COOLDOWN_MS;
+    record.failCount = 0;
+    record.lastFailAt = 0;
+    record.timestamps = [];
+  }
+}
+
+// Any completed deposit clears the slate.
+function clearDepositFailures(userId) {
+  if (!userId) return;
+  const record = depositRateLimits.get(userId);
+  if (!record) return;
+  record.failCount = 0;
+  record.lastFailAt = 0;
+  record.timestamps = [];
+}
 
 // Check current user deposit cooldown status
 app.get('/api/payments/cooldown', (req, res) => {
@@ -2056,7 +2103,7 @@ app.post('/api/payments/stk-push', async (req, res) => {
       const remainingSeconds = Math.ceil((rateLimit.cooldownUntil - now) / 1000);
       const remainingMinutes = Math.ceil(remainingSeconds / 60);
       return res.status(429).json({
-        message: `Too many rapid deposit attempts. To avoid payment provider restrictions, please try again in ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}.`,
+        message: `Too many deposit prompts went uncompleted. To avoid payment provider restrictions, please try again in ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}.`,
         code: 'RATE_LIMIT_COOLDOWN',
         cooldownUntil: rateLimit.cooldownUntil,
         retryAfterSeconds: remainingSeconds
@@ -2083,14 +2130,15 @@ app.post('/api/payments/stk-push', async (req, res) => {
       }
     }
 
-    // If this is the 3rd consecutive short-interval prompt, activate 10-minute cooldown for subsequent clicks
-    if (consecutiveShortCount >= MAX_CONSECUTIVE_SHORT_ATTEMPTS - 1 && history.length >= MAX_CONSECUTIVE_SHORT_ATTEMPTS - 1) {
-      rateLimit.timestamps.push(now);
-      rateLimit.cooldownUntil = now + DEPOSIT_COOLDOWN_MS;
-      runtimeLog(`[PayHero RateLimit] User ${user.username} (${user.id}) completed 3 consecutive short-interval deposit prompts. 10-minute cooldown activated.`);
-    } else {
-      rateLimit.timestamps.push(now);
+    // Deliberately no cooldown here. Clicking quickly is not itself abuse —
+    // a player topping up three times in a row is paying successfully and must
+    // not be locked out. The cooldown is driven purely by prompts that were
+    // cancelled or failed (see recordDepositFailure), and any completed
+    // deposit clears the streak.
+    if (consecutiveShortCount >= MAX_CONSECUTIVE_SHORT_ATTEMPTS) {
+      runtimeLog(`[PayHero RateLimit] User ${user.username} (${user.id}) is prompting rapidly; watching for failures.`);
     }
+    rateLimit.timestamps.push(now);
 
     const { amount, phone_number, phone } = req.body || {};
     const rawPhone = phone_number || phone || user.phone;
