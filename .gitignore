@@ -55,3 +55,6 @@ Thumbs.db
 
 # Claude Code local state
 /.claude
+
+# Local Netlify folder
+.netlify
