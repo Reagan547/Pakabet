@@ -229,9 +229,9 @@
 .canvas-overlay { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
 .stage-overlay.waiting { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .betting-countdown-box { display: none; }
-.partner-branding-box { display: flex; flex-direction: column; align-items: center; gap: 4px; transform: translateY(-3%); }
-.ufc-partner-badge { display: flex; align-items: center; gap: 13px; font-size: clamp(32px,4.5vw,54px); font-weight: 900; line-height: .86; }
-.ufc-title { color: #e10c2d; font-style: italic; }.ufc-partner-badge .divider { color: #e5e5e5; font-size: 1.06em; font-weight: 200; }.ufc-partner-badge .aviator-title { color: #ed1744; font-family: Georgia,'Times New Roman',serif; font-size: .64em; font-style: italic; }
+.partner-branding-box { display: flex; flex-direction: column; align-items: center; gap: 10px; transform: translateY(-3%); }
+.ufc-partner-badge { display: flex; align-items: center; gap: 13px; font-size: clamp(64px,18vw,190px); font-weight: 900; line-height: .86; }
+.ufc-title { color: #e10c2d; font-style: italic; }
 .partner-subtitle { position: relative; color: #f7f7f7; font-size: clamp(12px,1.65vw,20px); font-weight: 900; letter-spacing: .8px; }
 .red-line-countdown-wrap {
   width: 120px;
@@ -251,7 +251,6 @@
   box-shadow: 0 0 10px #ed0042, 0 0 4px #ff1744;
   transition: width 0.03s linear;
 }
-.spribe-cert-badge { display: flex; width: 81px; height: 56px; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 2px; margin-top: 8px; padding: 4px 5px 3px; border: 1px solid #8ab438; border-radius: 8px; background: #26350d; font-weight: 800; }.cert-title { display: flex; align-items: center; gap: 4px; color: #fff; font-size: 11px; }.cert-icon { color: #dbe6de; font-size: 11px; }.cert-status { padding: 2px 4px; border-radius: 3px; background: #5a921d; color: #effadd; font-size: 7px; white-space: nowrap; }.cert-status b { display: inline-flex; width: 8px; height: 8px; align-items: center; justify-content: center; border-radius: 50%; background: #2cc43a; color: #fff; font-size: 6px; }.cert-since { color: #ddd; font-size: 6px; font-weight: 400; }
 .stage-overlay.running,.stage-overlay.crashed { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .waiting-multiplier-display,
 .live-multiplier-display {

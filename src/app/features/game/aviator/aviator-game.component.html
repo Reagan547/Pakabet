@@ -30,7 +30,6 @@
         ‹ Go Back
       </button>
       <div class="brand">
-        <span class="brand-title">Aviator</span>
         <span class="provably-fair-tag" (click)="openHistoryModal()" title="Provably Fair Game Engine">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
           Provably Fair
@@ -117,7 +116,7 @@
     <!-- LEFT SIDEBAR: LIVE BETS FEED -->
     <aside class="left-sidebar glass-card">
       <div class="bets-tabs">
-        <button [class.active]="activeTab() === 'all'" (click)="activeTab.set('all')">All Bets</button>
+        <button [class.active]="activeTab() === 'all'" (click)="activeTab.set('all')">All Places</button>
         <button [class.active]="activeTab() === 'my'" (click)="activeTab.set('my')">Previous</button>
         <button [class.active]="activeTab() === 'top'" (click)="activeTab.set('top')">Top</button>
       </div>
@@ -125,7 +124,7 @@
       <div class="bets-header-info">
         <div class="bets-header-text">
           <span class="bets-title">
-            {{ activeTab() === 'all' ? 'ALL BETS' : (activeTab() === 'my' ? 'PREVIOUS' : 'TOP') }}
+            {{ activeTab() === 'all' ? 'ALL PLACES' : (activeTab() === 'my' ? 'PREVIOUS' : 'TOP') }}
           </span>
           <span class="bets-count">{{ betsCount() }}</span>
         </div>
@@ -133,7 +132,7 @@
 
       <div class="bets-table-header">
         <span class="col-player">Player</span>
-        <span class="col-bet text-right">Bet KES</span>
+        <span class="col-bet text-right">Place KES</span>
         <span class="col-mult text-center">X</span>
         <span class="col-win text-right">Win KES</span>
       </div>
@@ -229,16 +228,10 @@
             <div class="partner-branding-box">
               <div class="ufc-partner-badge">
                 <span class="ufc-title">UFC</span>
-                <span class="divider">|</span>
-                <span class="aviator-title">Aviator</span>
               </div>
               <div class="partner-subtitle">OFFICIAL PARTNERS</div>
               <div class="red-line-countdown-wrap">
                 <div class="red-line-countdown" [style.width.%]="countdownProgress()"></div>
-              </div>
-              <div class="spribe-cert-badge">
-                <span class="cert-title">🎮 SPRIBE</span>
-                <span class="cert-status">Official Game ✔</span>
               </div>
             </div>
           </div>
@@ -276,7 +269,7 @@
         <div class="bet-panel-box glass-card" [class.panel-active]="panel1().hasActiveBet" [class.auto-mode]="panel1().mode === 'auto'">
           <div class="panel-header-row">
             <div class="panel-subtabs" [class.auto-mode]="panel1().mode === 'auto'">
-              <button type="button" [class.active]="panel1().mode === 'bet'" (click)="setPanelMode(1, 'bet')">Bet</button>
+              <button type="button" [class.active]="panel1().mode === 'bet'" (click)="setPanelMode(1, 'bet')">Place</button>
               <button type="button" [class.active]="panel1().mode === 'auto'" (click)="setPanelMode(1, 'auto')">Auto</button>
             </div>
           </div>
@@ -311,7 +304,7 @@
                       class="big-bet-btn green" 
                       [disabled]="panel1().isPending" 
                       (click)="placeBet(1)">
-                <span class="btn-title">{{ panel1().isPending ? 'Placing...' : 'Bet' }}</span>
+                <span class="btn-title">{{ panel1().isPending ? 'Placing...' : 'Place' }}</span>
                 <span class="btn-sub">{{ panel1().amount | number:'1.2-2' }} KES</span>
               </button>
 
@@ -343,7 +336,7 @@
               <button *ngIf="(gameState() === 'RUNNING' || gameState() === 'CRASHED') && panel1().hasCashedOut && !panel1().queuedAmount"
                       class="big-bet-btn green"
                       (click)="queueBet(1)">
-                <span class="btn-title">Bet</span>
+                <span class="btn-title">Place</span>
                 <span class="btn-sub">{{ panel1().amount | number:'1.2-2' }} KES</span>
               </button>
 
@@ -351,7 +344,7 @@
               <button *ngIf="(gameState() === 'RUNNING' || gameState() === 'CRASHED') && !panel1().hasActiveBet && !panel1().hasCashedOut && !panel1().queuedAmount"
                       class="big-bet-btn green"
                       (click)="queueBet(1)">
-                <span class="btn-title">Bet</span>
+                <span class="btn-title">Place</span>
                 <span class="btn-sub">{{ panel1().amount | number:'1.2-2' }} KES</span>
               </button>
             </div>
@@ -396,7 +389,7 @@
         <div class="bet-panel-box glass-card" *ngIf="!panel2Collapsed()" [class.panel-active]="panel2().hasActiveBet" [class.auto-mode]="panel2().mode === 'auto'">
           <div class="panel-header-row">
             <div class="panel-subtabs" [class.auto-mode]="panel2().mode === 'auto'">
-              <button type="button" [class.active]="panel2().mode === 'bet'" (click)="setPanelMode(2, 'bet')">Bet</button>
+              <button type="button" [class.active]="panel2().mode === 'bet'" (click)="setPanelMode(2, 'bet')">Place</button>
               <button type="button" [class.active]="panel2().mode === 'auto'" (click)="setPanelMode(2, 'auto')">Auto</button>
             </div>
             <button type="button" class="panel-collapse-btn" (click)="togglePanel2()" title="Minimize panel 2" aria-label="Minimize panel 2">
@@ -434,7 +427,7 @@
                       class="big-bet-btn green" 
                       [disabled]="panel2().isPending" 
                       (click)="placeBet(2)">
-                <span class="btn-title">{{ panel2().isPending ? 'Placing...' : 'Bet' }}</span>
+                <span class="btn-title">{{ panel2().isPending ? 'Placing...' : 'Place' }}</span>
                 <span class="btn-sub">{{ panel2().amount | number:'1.2-2' }} KES</span>
               </button>
 
@@ -466,7 +459,7 @@
               <button *ngIf="(gameState() === 'RUNNING' || gameState() === 'CRASHED') && panel2().hasCashedOut && !panel2().queuedAmount"
                       class="big-bet-btn green"
                       (click)="queueBet(2)">
-                <span class="btn-title">Bet</span>
+                <span class="btn-title">Place</span>
                 <span class="btn-sub">{{ panel2().amount | number:'1.2-2' }} KES</span>
               </button>
 
@@ -474,7 +467,7 @@
               <button *ngIf="(gameState() === 'RUNNING' || gameState() === 'CRASHED') && !panel2().hasActiveBet && !panel2().hasCashedOut && !panel2().queuedAmount"
                       class="big-bet-btn green"
                       (click)="queueBet(2)">
-                <span class="btn-title">Bet</span>
+                <span class="btn-title">Place</span>
                 <span class="btn-sub">{{ panel2().amount | number:'1.2-2' }} KES</span>
               </button>
             </div>
