@@ -16,7 +16,7 @@ import { AuthService } from '../../../core/services/auth.service';
       <!-- LOADING MODAL (IMAGE 1) -->
       <div *ngIf="isLoading" class="loading-modal-card glass-card" [class.fade-out]="isFadingOut">
         <div class="aviator-brand">
-          <img class="site-logo-image" src="/assets/icons/pakabet-icon.jpeg" alt="Palpesabet" />
+          <img class="site-logo-image" src="/assets/icons/palpesabet-mark.png" alt="Palpesabet" />
         </div>
 
         <!-- PROGRESS BAR CAPSULE -->
@@ -37,7 +37,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
       <!-- LOG IN / REGISTER / FORGOT OTP MODAL (IMAGE 2) -->
       <div *ngIf="!isLoading" class="auth-modal-card glass-card fade-in">
-        <img class="site-logo-image auth-site-logo" src="/assets/icons/pakabet-icon.jpeg" alt="Palpesabet" />
+        <img class="site-logo-image auth-site-logo" src="/assets/icons/palpesabet-mark.png" alt="Palpesabet" />
         <h2 class="auth-title">
           {{ activeTab === 'login' ? 'Log In' : (activeTab === 'register' ? 'Register' : 'Reset Password') }}
         </h2>
@@ -770,7 +770,7 @@ export class AuthLandingComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.completeLoginAttempt();
         const role = (res.user?.role || '').toLowerCase();
-        const dest = (role === 'admin' || role === 'super_admin' || role === 'superadmin') ? '/admin' : '/play';
+        const dest = (role === 'admin' || role === 'super_admin' || role === 'superadmin') ? '/admin' : '/bets';
         this.router.navigate([dest]);
       },
       error: (err) => {
