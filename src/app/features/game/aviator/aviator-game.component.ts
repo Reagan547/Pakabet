@@ -1549,7 +1549,7 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.withdrawalNotif.set({
       id: payload.id,
-      title: payload.title || '📋 Ligibet Notification',
+      title: payload.title || '📋 Palpesabet Notification',
       message: payload.message,
       type: payload.type || 'info',
       timestamp

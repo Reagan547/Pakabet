@@ -595,7 +595,7 @@
   <div *ngIf="bonusNotif()" class="bonus-notification" [class.info]="bonusNotif()?.type === 'info'" role="alert">
     <div class="bonus-notification-icon">{{ bonusNotif()?.type === 'success' ? '🎉' : '💡' }}</div>
     <div class="bonus-notification-content">
-      <span class="bonus-notification-eyebrow">LIGIBET REWARDS</span>
+      <span class="bonus-notification-eyebrow">PALPESABET REWARDS</span>
       <strong>{{ bonusNotif()?.title }}</strong>
       <p>{{ bonusNotif()?.message }}</p>
     </div>
@@ -715,7 +715,7 @@
                 <span class="notif-icon-emoji">
                   {{ withdrawalNotif()?.type === 'completed' ? '✅' : (withdrawalNotif()?.type === 'rejected' ? '⚠️' : '📋') }}
                 </span>
-                <span class="notif-brand-title">LIGIBET WITHDRAWAL</span>
+                <span class="notif-brand-title">PALPESABET WITHDRAWAL</span>
                 <span class="notif-time-stamp">{{ withdrawalNotif()?.timestamp }}</span>
               </div>
               <button class="notif-close-btn" (click)="dismissWithdrawalNotification()" title="Close">✕</button>
