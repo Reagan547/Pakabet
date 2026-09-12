@@ -1,5 +1,5 @@
 /**
- * Resolves the backend API origin for production (api.pakabet.site) and local dev.
+ * Resolves the backend API origin for production (api.palpesabet.site) and local dev.
  */
 const isLocalDevelopment =
   typeof window !== 'undefined' &&
@@ -7,6 +7,6 @@ const isLocalDevelopment =
 
 export const API_ORIGIN = isLocalDevelopment
   ? 'http://localhost:3022'
-  : 'https://api.pakabet.site';
+  : 'https://api.palpesabet.site';
 
 export const API_BASE_URL = `${API_ORIGIN}/api`;

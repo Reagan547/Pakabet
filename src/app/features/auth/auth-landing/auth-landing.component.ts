@@ -16,7 +16,7 @@ import { AuthService } from '../../../core/services/auth.service';
       <!-- LOADING MODAL (IMAGE 1) -->
       <div *ngIf="isLoading" class="loading-modal-card glass-card" [class.fade-out]="isFadingOut">
         <div class="aviator-brand">
-          <img class="site-logo-image" src="/assets/icons/pakabet-icon.jpeg" alt="Pakabet" />
+          <img class="site-logo-image" src="/assets/icons/pakabet-icon.jpeg" alt="Palpesabet" />
         </div>
 
         <!-- PROGRESS BAR CAPSULE -->
@@ -29,7 +29,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
         <!-- SPEED UP CIRCLE BUTTON -->
         <button class="speedup-circle-btn" (click)="speedUpLoading()" type="button" title="Tap to speed up loading">
-          <span class="speedup-text">PAKABET</span>
+          <span class="speedup-text">PALPESABET</span>
         </button>
 
         <div class="speedup-hint-text">Tap the badge to speed up loading</div>
@@ -37,7 +37,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
       <!-- LOG IN / REGISTER / FORGOT OTP MODAL (IMAGE 2) -->
       <div *ngIf="!isLoading" class="auth-modal-card glass-card fade-in">
-        <img class="site-logo-image auth-site-logo" src="/assets/icons/pakabet-icon.jpeg" alt="Pakabet" />
+        <img class="site-logo-image auth-site-logo" src="/assets/icons/pakabet-icon.jpeg" alt="Palpesabet" />
         <h2 class="auth-title">
           {{ activeTab === 'login' ? 'Log In' : (activeTab === 'register' ? 'Register' : 'Reset Password') }}
         </h2>
@@ -142,7 +142,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="auth-links-footer">
             <div *ngIf="activeTab === 'login'" class="link-row">
               <button type="button" class="auth-switch-btn" (click)="setTab('register')">
-                <span>New to Pakabet?</span>
+                <span>New to Palpesabet?</span>
                 <span class="auth-switch-action">Create account <span aria-hidden="true">→</span></span>
               </button>
             </div>
@@ -243,7 +243,7 @@ import { AuthService } from '../../../core/services/auth.service';
   `,
   styles: [`
 /* ═══════════════════════════════════════════════════════════════════════
-       Pakabet auth — deep green + gold, matching the sportsbook chrome.
+       Palpesabet auth — deep green + gold, matching the sportsbook chrome.
        ═══════════════════════════════════════════════════════════════════════ */
     :host {
       --pk-green: #0a8f3c;

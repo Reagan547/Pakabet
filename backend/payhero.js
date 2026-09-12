@@ -45,7 +45,7 @@ const PAYHERO_API_KEY = process.env.PAYHERO_API_KEY || process.env.PAYHERO_API_U
 const PAYHERO_API_SECRET = process.env.PAYHERO_API_SECRET || process.env.PAYHERO_API_PASSWORD || '';
 const PAYHERO_CHANNEL_ID = process.env.PAYHERO_CHANNEL_ID || '';
 const PAYHERO_CREDENTIAL_ID = process.env.PAYHERO_CREDENTIAL_ID || '';
-const PAYHERO_CALLBACK_URL = process.env.PAYHERO_CALLBACK_URL || 'https://api.pakabet.site/api/payments/payhero/callback';
+const PAYHERO_CALLBACK_URL = process.env.PAYHERO_CALLBACK_URL || 'https://api.palpesabet.site/api/payments/payhero/callback';
 const PAYHERO_CALLBACK_TOKEN = process.env.PAYHERO_CALLBACK_TOKEN || '';
 
 const PAYHERO_BASIC_AUTH = process.env.PAYHERO_BASIC_AUTH || process.env.PAYHERO_BASIC_AUTH_TOKEN || process.env.PAYHERO_AUTH_TOKEN || '';

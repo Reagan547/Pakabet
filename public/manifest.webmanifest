@@ -1,7 +1,7 @@
 {
-  "name": "Pakabet",
-  "short_name": "Pakabet",
-  "description": "Pakabet Aviator and instant M-Pesa payouts in Kenya.",
+  "name": "Palpesabet",
+  "short_name": "Palpesabet",
+  "description": "Palpesabet Aviator and instant M-Pesa payouts in Kenya.",
   "start_url": "/bets",
   "scope": "/",
   "display": "standalone",

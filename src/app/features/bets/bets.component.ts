@@ -296,8 +296,8 @@ export class BetsComponent implements OnInit, OnDestroy {
   ];
 
   readonly promoSlides = [
-    { title: 'WELCOME TO PAKABET', tag: 'KSH 3,500 WELCOME BONUS', cta: 'Claim now', action: 'promos' },
-    { title: 'PAKABET AVIATOR', tag: 'MULTIPLIER UP TO 10,000X', cta: 'Play now', action: 'aviator' },
+    { title: 'WELCOME TO PALPESABET', tag: 'KSH 3,500 WELCOME BONUS', cta: 'Claim now', action: 'promos' },
+    { title: 'PALPESABET AVIATOR', tag: 'MULTIPLIER UP TO 10,000X', cta: 'Play now', action: 'aviator' },
     { title: 'LAKI TATU JACKPOT', tag: 'KSH 300,000 EVERY WEEKEND', cta: 'Enter now', action: 'jackpot' }
   ];
 
@@ -528,7 +528,7 @@ export class BetsComponent implements OnInit, OnDestroy {
         break;
       default:
         this.activeCasinoTab.set('crash');
-        this.notify(`${tile.label} is launching soon on Pakabet.`);
+        this.notify(`${tile.label} is launching soon on Palpesabet.`);
     }
   }
 
@@ -541,7 +541,7 @@ export class BetsComponent implements OnInit, OnDestroy {
   openCasinoGame(game: CasinoGame): void {
     if (game.id === 'aviator') { this.goToAviator(); return; }
     if (!this.isAuthenticated) { this.goToLogin(); return; }
-    this.notify(`${game.name} is launching soon on Pakabet.`);
+    this.notify(`${game.name} is launching soon on Palpesabet.`);
   }
 
   openQuickTile(tile: QuickPhotoTile): void {
@@ -553,7 +553,7 @@ export class BetsComponent implements OnInit, OnDestroy {
     if (game) {
       this.openCasinoGame(game);
     } else {
-      this.notify(`${tile.label} is launching soon on Pakabet.`);
+      this.notify(`${tile.label} is launching soon on Palpesabet.`);
     }
   }
 
@@ -1004,7 +1004,7 @@ export class BetsComponent implements OnInit, OnDestroy {
   }
 
   promoteApp(): void {
-    this.notify('Add Pakabet to your home screen from your browser menu to claim the bonus.');
+    this.notify('Add Palpesabet to your home screen from your browser menu to claim the bonus.');
   }
 
   goToLogin(): void { this.router.navigate(['/login']); }

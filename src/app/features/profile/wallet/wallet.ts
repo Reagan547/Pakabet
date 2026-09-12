@@ -157,7 +157,7 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
   `,
   styles: [`
 /* ═══════════════════════════════════════════════════════════════════════
-       Pakabet wallet — deep green + gold, matching the sportsbook chrome.
+       Palpesabet wallet — deep green + gold, matching the sportsbook chrome.
        Styling only: the deposit and withdraw flows are untouched.
        ═══════════════════════════════════════════════════════════════════════ */
     :host {

@@ -98,11 +98,11 @@
       </div>
 
       <button class="chat-toggle-btn" type="button" (click)="toggleChat()" [class.active]="chatOpen()"
-              title="Open Pakabet live chat" [attr.aria-expanded]="chatOpen()">
+              title="Open Palpesabet live chat" [attr.aria-expanded]="chatOpen()">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M20 11.25a7.5 7.5 0 0 1-8 7.47A7.9 7.9 0 0 1 8.72 18L4.5 19.5 6 15.28A7.9 7.9 0 0 1 5.28 12 7.5 7.5 0 0 1 12.75 4.5 7.5 7.5 0 0 1 20 11.25Z" />
         </svg>
-        <span class="sr-only">Open Pakabet live chat</span>
+        <span class="sr-only">Open Palpesabet live chat</span>
       </button>
 
       <button class="nav-icon-btn" (click)="toggleFullscreen()" title="Toggle Fullscreen">
@@ -516,7 +516,7 @@
     </main>
 
     <!-- RIGHT CHAT DRAWER (DOCKED AS 3RD COLUMN) -->
-    <aside class="chat-drawer" *ngIf="chatOpen()" aria-label="Pakabet live chat">
+    <aside class="chat-drawer" *ngIf="chatOpen()" aria-label="Palpesabet live chat">
       <!-- Top bar on mobile mode matching image -->
       <div class="chat-mobile-top-bar">
         <button type="button" class="chat-mobile-back-btn" (click)="closeChat()">

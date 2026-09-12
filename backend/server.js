@@ -23,6 +23,9 @@ const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
 // even if a Render environment variable is incomplete, otherwise a deployment
 // can accept registration locally yet reject browser API calls in production.
 const REQUIRED_PUBLIC_ORIGINS = new Set([
+  'https://palpesabet.site',
+  'https://www.palpesabet.site',
+  // Kept so shared links and installed PWAs on the previous domain keep working.
   'https://pakabet.site',
   'https://www.pakabet.site',
 ]);
@@ -124,7 +127,7 @@ const CHAT_BOT_NAMES = [
 ];
 
 const CHAT_BOT_MESSAGES = [
-  'Pakabet inalipa mbaya sana leo! Nishatoa 45k kwa M-Pesa 🤑',
+  'Palpesabet inalipa mbaya sana leo! Nishatoa 45k kwa M-Pesa 🤑',
   'Wazi bro, signals za leo zilikua on point sana, asante Mr Dan 🙏',
   'Nani ako Room 1 sai? Nimeona 18.5x ikitokea plane imepaa safi 🚀',
   'Aki signals ziko legit, nimeanza na 500 nikatoa 14,000!',
@@ -133,62 +136,62 @@ const CHAT_BOT_MESSAGES = [
   'Naitwa Rose thank you so much Mr Dan nmetoa kwa 50K leo ubarikiwe sana!',
   'Eii plane imeenda 54x! Nani alishika hii round ya moto?',
   'Signals za leo zimecome through fiti sana, niko happy.',
-  'Hapa Pakabet hakuna delay kwa payout, 2 mins pesa iko kwa M-Pesa 🙌',
+  'Hapa Palpesabet hakuna delay kwa payout, 2 mins pesa iko kwa M-Pesa 🙌',
   'Tuliza boli cheza na discipline usifuate emotions wakuu.',
   'Room 3 iko moto leo, continuous purple rounds 🔥',
   'Nani ako na stake ya 1000 twende kazi kwa Room 1?',
   'Wakuu cashout at 2.50x ndio safe zone, usikue greedy.',
-  'Pakabet best platform Kenya hands down 💯',
+  'Palpesabet best platform Kenya hands down 💯',
   'Nimeangukia 12k with stake ndogo ya 300, signal ilisema 4x.',
   'Withdrawal ya 35,000 imeingia chap chap kwa M-Pesa!',
   'Mungu akubariki Mr Dan kwa signals safi sana mtafute ni legit.',
-  'Leo ndio ile siku ya kuomoka na Pakabet mabro.',
+  'Leo ndio ile siku ya kuomoka na Palpesabet mabro.',
   'Room 1 prediction ilikua accurate 100% leo.',
   'Niko live hapa naona purple odds zikipanda tu.',
   'Leo round 10 zote zimepita 3x, hii ni baraka tupu.',
   'Signal ya saa nane imelipa fiti sana, nimerecover capital.',
   'Chezeni smart wakuu, aviator inataka patience na hesabu.',
-  'Pakabet engine iko smooth sana, hakuna lagging hata kidogo.',
+  'Palpesabet engine iko smooth sana, hakuna lagging hata kidogo.',
   'Nimecatch 9.40x kwa Room 2, leo weekend imejipa mapema 💰',
   'Discipline ndio siri hapa, 2x kila round inatosha kabisa.',
   'Wadau signals za telegram ziko accurate leo, nimetoa 28k.',
   'Withdrawal yangu ya 15k imeingia instant bila stress.',
   'Room 2 inapeana ma odds kali sana, check history uone.',
-  'Kila mtu anacheza Pakabet anajua hapa hakuna delay ya cashout.',
+  'Kila mtu anacheza Palpesabet anajua hapa hakuna delay ya cashout.',
   'Signals zimenisaidia kuelewa graph vizuri sana.',
   'Nimecashout kwa 4.50x nikaacha watu wakilia kwa crash.',
   'Small stakes with high frequency ndio format yangu ya leo.',
-  'Pakabet mko juu, engine ya spribe iko on point.',
+  'Palpesabet mko juu, engine ya spribe iko on point.',
   'Nimepiga 8k na stake ya 200 tu, asante Mr Dan!',
   'Guys remember to set auto cashout at 2.0x to protect your balance.',
   'Nani ako na tips za Room 3? Leo naona inatoa high multipliers.',
   'Kuingia na balance poa ndio unacheza bila pressure.',
   'Mimi niko disciplined, target yangu ya 20k per day nimehit tayari.',
-  'Pakabet payout speed is unmatched, seconds tu kwa simu.',
+  'Palpesabet payout speed is unmatched, seconds tu kwa simu.',
   'Bro signals za leo ziko fire 🔥🔥🔥',
   'Nimepata 6.80x kwa first bet ya leo, blessed day!',
   'Always withdraw your profits first, kisha cheza na faida.',
-  'Pakabet ndio kusema, games zote ziko provably fair.',
+  'Palpesabet ndio kusema, games zote ziko provably fair.',
   'Mr Dan signals are top tier, amerecover lost funds zote.',
   'Leo niko locked in, signals zikidrop tu naweka stake.',
   'Room 1 imepanda 33x sasa hivi, what a massive flight!',
   'Cashout early, secure the bag, rinse and repeat.',
   'Nimejaribu split betting kwa panel 1 na panel 2, method inawork fiti.',
-  'Pakabet customer service pia wako fast sana.',
+  'Palpesabet customer service pia wako fast sana.',
   'Leo niko 4 wins in a row, thanks to the live signals.',
   'Hata na stake ndogo unaeza build balance pole pole.',
   'Nani mwingine amewithdraw leo? Mpesa yangu inasoma safi.',
   'Signals ziko accurate 90%+ hii wiki nzima.',
   'Discipline over emotions always, aviator rules.',
   'Plane imepaa tena 12x, Room 1 is cooking today!',
-  'Nimepata 5k with just 250 bob, Pakabet is the real deal.',
+  'Nimepata 5k with just 250 bob, Palpesabet is the real deal.',
   'Wakuu chezeni na plan, don’t gamble blindly.',
   'Mr Dan thank you bro, 40k profit in one afternoon!',
-  'Pakabet room switching is so seamless, nimeona 15x kwa Room 2!',
+  'Palpesabet room switching is so seamless, nimeona 15x kwa Room 2!',
   'Kaa rada na signal ya 4:30pm inakam na multiplier nzito.',
   'Mimi leo sitoki kwa game hadi nihit 50k target.',
   'Nimecash out 5.20x nikamake 10,400 with 2k stake.',
-  'Watu wa Pakabet mko safe kabisa, hakuna delayed withdrawals.',
+  'Watu wa Palpesabet mko safe kabisa, hakuna delayed withdrawals.',
   'Respect the graph, check pink history kabla uweke heavy stake.',
   '24x caught safely! Mpesa alert ting ting 📲',
   'Chezeni na 2.0x auto cashout wakuu, consistency ndio key.',
@@ -198,7 +201,7 @@ const CHAT_BOT_MESSAGES = [
   'Deposit ya 2k imekua 26,400 in 30 mins!',
   'Wakuu never chase losses, take a break ukihit target.',
   'Signals za VIP channel ziko 98% win rate leo.',
-  'Hapa Pakabet hakuna delay ya ku-credit winnings.',
+  'Hapa Palpesabet hakuna delay ya ku-credit winnings.',
   'Plane imepaa tena! Room 1 inafanya mambo leo ✈️🔥',
   'Nimepata 16.50x na stake ya 500, day made!',
   'Leo ni mwendo wa green tu kwa history yangu.',
@@ -215,7 +218,7 @@ const CHAT_BOT_MESSAGES = [
   'Always set a daily stop-loss and profit target.',
   'Pink rounds zimejaa kwa table, game is on fire!',
   'Leo niko 7 out of 8 wins, pure discipline.',
-  'Pakabet is the real king of crash games in KE 👑',
+  'Palpesabet is the real king of crash games in KE 👑',
   'Nani ako ready na next signal? Dropping in 2 mins!',
   'Target hit! 10k profit locked and withdrawn 💸',
   'Aviator with fast payout is unmatched.',
@@ -229,7 +232,7 @@ const CHAT_BOT_MESSAGES = [
   'Tukutane VIP session ya jioni wakuu 💪',
   'Respect the signals and manage your bankroll.',
   'Another 15,000 KES straight to my M-Pesa account!',
-  'Pakabet to the moon 🚀🚀🚀'
+  'Palpesabet to the moon 🚀🚀🚀'
 ];
 
 function runtimeLog(...args) {
@@ -1826,7 +1829,7 @@ io.on('connection', (socket) => {
 
   socket.on('chat:send', (data) => {
     if (!socket.odlutUserId) {
-      return socket.emit('chat:error', { message: 'Log in to join the Pakabet chat.', code: 'AUTH_REQUIRED' });
+      return socket.emit('chat:error', { message: 'Log in to join the Palpesabet chat.', code: 'AUTH_REQUIRED' });
     }
 
     const access = getChatAccess(socket);
@@ -1839,7 +1842,7 @@ io.on('connection', (socket) => {
     }
 
     const text = String(data?.text || '').replace(/\s+/g, ' ').trim().slice(0, 220);
-    if (!text) return socket.emit('chat:error', { message: 'Type a message about Pakabet first.', code: 'EMPTY_MESSAGE' });
+    if (!text) return socket.emit('chat:error', { message: 'Type a message about Palpesabet first.', code: 'EMPTY_MESSAGE' });
 
     appendChatMessage(createChatMessage({
       username: socket.username,

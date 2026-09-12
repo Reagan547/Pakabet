@@ -1,10 +1,10 @@
-# Pakabet
+# Palpesabet
 
-Aviator crash game and betting front end for **pakabet.site**, with an Express +
+Aviator crash game and betting front end for **palpesabet.site**, with an Express +
 Socket.IO backend and MongoDB Atlas persistence.
 
-- `src/` — Angular 21 front end (deployed to Vercel, served at `https://pakabet.site`)
-- `backend/` — Express + Socket.IO API and game engine (deployed to Render, served at `https://api.pakabet.site`)
+- `src/` — Angular 21 front end (deployed to Netlify, served at `https://palpesabet.site`)
+- `backend/` — Express + Socket.IO API and game engine (deployed to Render, served at `https://api.palpesabet.site`)
 
 ## Run locally
 
@@ -20,7 +20,7 @@ npm start            # API + game socket on http://localhost:3022
 ```
 
 The front end picks its API origin automatically: `http://localhost:3022` on
-`localhost`/`127.0.0.1`, and `https://api.pakabet.site` everywhere else
+`localhost`/`127.0.0.1`, and `https://api.palpesabet.site` everywhere else
 (see [api-url.ts](src/app/core/config/api-url.ts)).
 
 ## Build
@@ -48,15 +48,14 @@ If `MONGODB_URI` is blank the backend falls back to a local JSON store under
 
 ## Deployment
 
-Both services are defined in [render.yaml](render.yaml), so a single Render
-Blueprint deploys the whole site.
+The front end is hosted on Netlify and the API on Render.
 
-- **pakabet-web** builds the Angular app (`npm ci && npm run build`) and serves
-  `dist/frontend/browser` as a static site, rewriting unknown paths to
-  `index.html` for the Angular router. Point `pakabet.site` and
-  `www.pakabet.site` here.
-- **pakabet-api** runs `backend/` (`npm start`, Node 22) with a health check on
-  `/api/health`. Point `api.pakabet.site` here and set every secret from the
-  table above in the Render dashboard.
-
-`vercel.json` is kept only for the earlier Vercel setup; Render ignores it.
+- **Netlify** builds the Angular app from [netlify.toml](netlify.toml)
+  (`npm ci && npm run build`) and serves `dist/frontend/browser`, rewriting
+  unknown paths to `index.html` for the Angular router. `palpesabet.site` and
+  `www.palpesabet.site` point here; the former `pakabet.site` and
+  `www.pakabet.site` are kept as aliases so old links keep working.
+- **pakabet-api** in [render.yaml](render.yaml) runs `backend/` (`npm start`,
+  Node 22) with a health check on `/api/health`. Point `api.palpesabet.site`
+  here and set every secret from the table above in the Render dashboard. The
+  Render service keeps its original name so the existing deployment is reused.

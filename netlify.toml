@@ -1,6 +1,6 @@
-# Netlify configuration for the Pakabet Angular front end.
+# Netlify configuration for the Palpesabet Angular front end.
 # The site is the static browser build; the API lives separately at
-# api.pakabet.site, which the app calls by absolute URL (see
+# api.palpesabet.site, which the app calls by absolute URL (see
 # src/app/core/config/api-url.ts), so no proxying is needed here.
 
 [build]
