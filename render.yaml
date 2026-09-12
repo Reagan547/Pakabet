@@ -22,7 +22,7 @@ services:
       - key: MONGODB_DB_NAME
         value: pakabet
       - key: ALLOWED_ORIGINS
-        value: https://palpesabet.site,https://www.palpesabet.site,https://api.palpesabet.site,https://pakabet.site,https://www.pakabet.site
+        value: https://palpesabet.site,https://www.palpesabet.site,https://api.palpesabet.site
       - key: PAYHERO_API_BASE
         value: https://backend.payhero.co.ke/api/v2
       - key: PAYHERO_CALLBACK_URL

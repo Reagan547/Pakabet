@@ -25,9 +25,6 @@ const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
 const REQUIRED_PUBLIC_ORIGINS = new Set([
   'https://palpesabet.site',
   'https://www.palpesabet.site',
-  // Kept so shared links and installed PWAs on the previous domain keep working.
-  'https://pakabet.site',
-  'https://www.pakabet.site',
 ]);
 
 // Automatically trust the Replit production + dev domains assigned to this
