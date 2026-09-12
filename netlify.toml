@@ -10,6 +10,21 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# The retired domain serves the same site, so send it to the canonical one.
+# Without this the browser origin stays pakabet.site and the API rejects the
+# call, since ALLOWED_ORIGINS now lists only the palpesabet.site origins.
+[[redirects]]
+  from = "https://pakabet.site/*"
+  to = "https://palpesabet.site/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.pakabet.site/*"
+  to = "https://palpesabet.site/:splat"
+  status = 301
+  force = true
+
 # Angular's router owns every path that is not a real file.
 [[redirects]]
   from = "/*"
