@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, catchError, of, throwError, switchMap, map, timeout } from 'rxjs';
 import { API_BASE_URL } from '../config/api-url';
+import { WithdrawalNoticeService } from './withdrawal-notice.service';
 
 export interface User {
   id: string | number;
@@ -53,6 +54,8 @@ export interface WithdrawalNotification {
 export interface WithdrawalResponse {
   message: string;
   balance: number;
+  reference?: string;
+  transactionId?: string;
   status: 'completed' | 'pending';
   notification: WithdrawalNotification | string;
 }
@@ -92,7 +95,7 @@ export class AuthService {
   public isAuthenticated$ = new BehaviorSubject<boolean>(this.hasToken());
   public userBalance$ = new BehaviorSubject<number>(0);
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private withdrawalNotices: WithdrawalNoticeService) {
     if (this.hasToken()) {
       this.loadCurrentUser().subscribe();
     }
@@ -332,6 +335,15 @@ export class AuthService {
     ).pipe(
       tap(res => {
         if (res.balance !== undefined) this.updateBalance(res.balance);
+        if (this.isAdmin()) {
+          this.withdrawalNotices.show({
+            reference: res.reference || res.transactionId || '',
+            amount,
+            phone: phone || this.currentUser$.getValue()?.phone_number || '',
+            balance: res.balance,
+            at: new Date(),
+          });
+        }
       }),
       catchError(err => throwError(() => this.extractErrorMessage(err)))
     );
