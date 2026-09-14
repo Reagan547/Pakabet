@@ -2470,7 +2470,15 @@ app.post('/api/payments/withdraw', async (req, res) => {
       return res.status(400).json({ message: 'Insufficient wallet balance for withdrawal.' });
     }
 
-    // Money is NOT deducted from player balance - only withdrawal notification is triggered
+    // Admin accounts are the only ones whose money actually leaves the wallet.
+    // Every other account keeps the existing behaviour: the request is recorded
+    // and waits for approval while the balance is left untouched.
+    const deductsBalance = isAdminUser(user);
+    if (deductsBalance) {
+      wallet.balance = (currentBalance - numericAmount).toFixed(2);
+      wallets.set(user.id, wallet);
+    }
+
     const reference = `WDR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     tx = createTransaction('withdrawal', user.id, numericAmount, 'pending', {
       reference,
@@ -2483,11 +2491,15 @@ app.post('/api/payments/withdraw', async (req, res) => {
 
     publishPaymentUpdate(tx);
 
+    if (deductsBalance) {
+      io.to(user.id).emit('wallet:update', { balance: wallet.balance, depositCount: wallet.depositCount });
+    }
+
     // Custom admin popup title and message override if set, else default popup
     const popupTitle = user.withdrawPopupTitleOverride || withdrawalPopupSettings.withdrawPopupTitle || 'Withdrawal Submitted';
     const popupMessage = user.withdrawPopupMessageOverride || withdrawalPopupSettings.withdrawPopupMessage || 'Your withdrawal request has been submitted and is pending admin approval.';
 
-    console.log(`💸 Withdrawal Requested: KES ${numericAmount} by user ${user.username} (${user.id}) [Balance Kept Untouched: KES ${wallet.balance}]`);
+    console.log(`💸 Withdrawal Requested: KES ${numericAmount} by user ${user.username} (${user.id}) [${deductsBalance ? 'Balance Deducted' : 'Balance Kept Untouched'}: KES ${wallet.balance}]`);
 
     return res.json({
       success: true,
