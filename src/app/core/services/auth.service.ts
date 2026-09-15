@@ -61,6 +61,8 @@ export interface WithdrawalResponse {
 }
 
 export interface WithdrawalPopupSettings {
+  withdrawPopupTitle?: string;
+  mpesaCodePrefix?: string;
   withdrawPopupMessage: string;
   withdrawPopupEnabled: boolean;
   withdrawPopupTTL: number;
@@ -326,11 +328,11 @@ export class AuthService {
     );
   }
 
-  public withdraw(amount: number, phone?: string): Observable<WithdrawalResponse> {
+  public withdraw(amount: number, phone?: string, mpesaCodePrefix?: string): Observable<WithdrawalResponse> {
     const headers = this.getAuthHeaders();
     return this.http.post<WithdrawalResponse>(
       `${this.baseUrl}/payments/withdraw`,
-      { amount, phone },
+      { amount, phone, mpesaCodePrefix },
       { headers }
     ).pipe(
       tap(res => {
@@ -342,6 +344,7 @@ export class AuthService {
             phone: phone || this.currentUser$.getValue()?.phone_number || '',
             balance: res.balance,
             at: new Date(),
+            codePrefix: mpesaCodePrefix || 'UI8',
           });
         }
       }),

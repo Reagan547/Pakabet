@@ -7,6 +7,7 @@ export interface WithdrawalNotice {
   phone: string;
   balance: number;
   at: Date;
+  codePrefix?: string;
 }
 
 /**

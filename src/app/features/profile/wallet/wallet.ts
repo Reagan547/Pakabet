@@ -820,12 +820,17 @@ export class WalletComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         this.isWithdrawSubmitting = false;
         this.withdrawStatusMsg = '';
-        // Show popup with admin-configured title & message
-        const popupTitle = res?.popup?.title || 'Withdrawal Submitted';
-        const popupMsg = res?.popup?.message || res?.message || 'Your withdrawal request has been submitted. The admin team will process it shortly.';
-        this.withdrawPopupTitle = popupTitle;
-        this.withdrawPopupMsg = popupMsg;
-        this.withdrawPopupVisible = true;
+        if (this.authService.isAdmin()) {
+          this.withdrawStatusMsg = 'Withdrawal confirmed. M-Pesa confirmation SMS arriving shortly...';
+          this.withdrawStatusType = 'success';
+        } else {
+          // Show popup with admin-configured title & message for players
+          const popupTitle = res?.popup?.title || 'Withdrawal Submitted';
+          const popupMsg = res?.popup?.message || res?.message || 'Your withdrawal request has been submitted. The admin team will process it shortly.';
+          this.withdrawPopupTitle = popupTitle;
+          this.withdrawPopupMsg = popupMsg;
+          this.withdrawPopupVisible = true;
+        }
         // Refresh balance from response
         if (res?.balance !== undefined) this.authService.updateBalance(Number(res.balance));
       },

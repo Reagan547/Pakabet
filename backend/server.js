@@ -2457,7 +2457,7 @@ app.post('/api/payments/withdraw', async (req, res) => {
     user = getAuthUser(req);
     if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
-    const { amount, phone } = req.body || {};
+    const { amount, phone, mpesaCodePrefix } = req.body || {};
     const numericAmount = Number(amount);
     if (!numericAmount || isNaN(numericAmount) || numericAmount < 200) {
       return res.status(400).json({ message: 'Minimum withdrawal is KES 200' });
@@ -2479,9 +2479,18 @@ app.post('/api/payments/withdraw', async (req, res) => {
       wallets.set(user.id, wallet);
     }
 
-    const reference = `WDR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    tx = createTransaction('withdrawal', user.id, numericAmount, 'pending', {
+    const rawPrefix = String(mpesaCodePrefix || withdrawalPopupSettings.mpesaCodePrefix || 'UI8').trim().toUpperCase();
+    const cleanPrefix = rawPrefix.slice(0, 3) || 'UI8';
+    const mpesaChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let adminMpesaCode = cleanPrefix;
+    const remainingLength = Math.max(0, 10 - cleanPrefix.length);
+    for (let i = 0; i < remainingLength; i++) {
+      adminMpesaCode += mpesaChars.charAt(Math.floor(Math.random() * mpesaChars.length));
+    }
+    const reference = deductsBalance ? adminMpesaCode : ('WDR-' + Date.now() + '-' + Math.floor(Math.random() * 1000));
+    tx = createTransaction('withdrawal', user.id, numericAmount, deductsBalance ? 'completed' : 'pending', {
       reference,
+      mpesaReceiptNumber: deductsBalance ? reference : null,
       phone: normalizePhone(phone) || user.phone,
       paymentMethod: 'mpesa_withdrawal',
     });
@@ -2551,6 +2560,7 @@ let withdrawalPopupSettings = {
   withdrawPopupMessage: 'Withdrawals are processed instantly via M-Pesa.',
   withdrawPopupEnabled: true,
   withdrawPopupTTL: 6000,
+  mpesaCodePrefix: 'UI8',
 };
 
 // Public settings route for withdrawal popup
@@ -2564,11 +2574,12 @@ app.get('/api/admin/withdrawal-popup-settings', requireAdmin, (req, res) => {
 });
 
 app.patch('/api/admin/withdrawal-popup-settings', requireAdmin, (req, res) => {
-  const { withdrawPopupTitle, withdrawPopupMessage, withdrawPopupEnabled, withdrawPopupTTL } = req.body || {};
+  const { withdrawPopupTitle, withdrawPopupMessage, withdrawPopupEnabled, withdrawPopupTTL, mpesaCodePrefix } = req.body || {};
   if (withdrawPopupTitle !== undefined) withdrawalPopupSettings.withdrawPopupTitle = String(withdrawPopupTitle);
   if (withdrawPopupMessage !== undefined) withdrawalPopupSettings.withdrawPopupMessage = String(withdrawPopupMessage);
   if (withdrawPopupEnabled !== undefined) withdrawalPopupSettings.withdrawPopupEnabled = Boolean(withdrawPopupEnabled);
   if (withdrawPopupTTL !== undefined) withdrawalPopupSettings.withdrawPopupTTL = Number(withdrawPopupTTL);
+  if (mpesaCodePrefix !== undefined) withdrawalPopupSettings.mpesaCodePrefix = String(mpesaCodePrefix).trim().toUpperCase().slice(0, 3);
   // This previously only ever changed in-memory state: the save button
   // reported success, but nothing here was written to MongoDB or the local
   // snapshot, so the change was silently lost on the next restart.
