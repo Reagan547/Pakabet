@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, of, throwError, switchMap, map, timeout } from 'rxjs';
 import { API_BASE_URL } from '../config/api-url';
 import { WithdrawalNoticeService } from './withdrawal-notice.service';
@@ -97,7 +98,7 @@ export class AuthService {
   public isAuthenticated$ = new BehaviorSubject<boolean>(this.hasToken());
   public userBalance$ = new BehaviorSubject<number>(0);
 
-  constructor(private http: HttpClient, private withdrawalNotices: WithdrawalNoticeService) {
+  constructor(private http: HttpClient, private withdrawalNotices: WithdrawalNoticeService, private router: Router) {
     if (this.hasToken()) {
       this.loadCurrentUser().subscribe();
     }
@@ -384,6 +385,21 @@ export class AuthService {
         ...(depositCount === undefined ? {} : { depositCount }),
       });
     }
+  }
+
+  private isHandlingBlocked = false;
+
+  public handleAccountBlocked(message?: string): void {
+    if (this.isHandlingBlocked) return;
+    this.isHandlingBlocked = true;
+    this.logout();
+    const notice = message || 'Your account has been deactivated by an administrator. You have been logged out.';
+    try {
+      alert(notice);
+    } catch {}
+    this.router.navigate(['/login']).finally(() => {
+      this.isHandlingBlocked = false;
+    });
   }
 
   public logout(): void {

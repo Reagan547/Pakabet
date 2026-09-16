@@ -1,9 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 import { io, Socket } from 'socket.io-client';
 import { API_ORIGIN } from '../config/api-url';
 
 @Injectable({ providedIn: 'root' })
 export class PresenceService {
+  private readonly auth = inject(AuthService);
   private socket: Socket | null = null;
   private token: string | null = null;
 
@@ -25,6 +27,14 @@ export class PresenceService {
       reconnectionDelayMax: 5000,
     });
     this.socket.on('connect', () => this.socket?.emit('auth', token));
+    this.socket.on('auth:blocked', (data: { message?: string }) => {
+      this.disconnect();
+      this.auth.handleAccountBlocked(data?.message);
+    });
+    this.socket.on('auth:logout', (data: { message?: string }) => {
+      this.disconnect();
+      this.auth.handleAccountBlocked(data?.message);
+    });
   }
 
   disconnect(): void {

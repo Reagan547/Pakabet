@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 import { io, Socket } from 'socket.io-client';
 import { BehaviorSubject } from 'rxjs';
 import { API_ORIGIN } from '../config/api-url';
@@ -98,6 +99,7 @@ export interface PaymentConfigPayload {
 
 @Injectable({ providedIn: 'root' })
 export class GameSocketService {
+  private readonly auth = inject(AuthService);
   private socket: Socket | null = null;
   private readonly serverUrl = API_ORIGIN;
 
@@ -330,6 +332,14 @@ export class GameSocketService {
       });
     });
     this.socket.on('disconnect', () => this.isConnected$.next(false));
+    this.socket.on('auth:blocked', (data: { message?: string }) => {
+      this.disconnect();
+      this.auth.handleAccountBlocked(data?.message);
+    });
+    this.socket.on('auth:logout', (data: { message?: string }) => {
+      this.disconnect();
+      this.auth.handleAccountBlocked(data?.message);
+    });
   }
 
   public placeBet(amount: number, slot: 1 | 2, autoCashout?: number, roomId: number = 1): void {

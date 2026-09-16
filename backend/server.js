@@ -943,7 +943,12 @@ function getAuthUser(req) {
   if (!token) return null;
   const decoded = verifyToken(token);
   if (!decoded) return null;
-  for (const user of users.values()) { if (user.id === decoded.userId) return user; }
+  for (const user of users.values()) {
+    if (user.id === decoded.userId) {
+      if (user.isActive === false) return null;
+      return user;
+    }
+  }
   return null;
 }
 
@@ -1688,7 +1693,7 @@ function authenticateGameSocket(socket, token) {
   if (!decoded) return null;
 
   const user = getUserById(decoded.userId);
-  if (!user) return null;
+  if (!user || user.isActive === false) return null;
 
   socket.odlutUserId = user.id;
   socket.username = user.username;
@@ -2876,11 +2881,56 @@ app.patch('/api/admin/users/:id/balance', requireAdmin, (req, res) => {
   res.json(wallet);
 });
 
+function kickAndLogoutUser(userId, message) {
+  const msg = message || 'Your account has been deactivated by an administrator.';
+  try {
+    io.to(userId).emit('auth:blocked', { message: msg });
+    io.to(userId).emit('auth:logout', { reason: 'account_blocked', message: msg });
+
+    const userRoom = io.sockets.adapter.rooms.get(userId);
+    if (userRoom) {
+      const socketIds = Array.from(userRoom);
+      for (const socketId of socketIds) {
+        const sock = io.sockets.sockets.get(socketId);
+        if (sock) {
+          try {
+            sock.emit('auth:blocked', { message: msg });
+            sock.emit('auth:logout', { reason: 'account_blocked', message: msg });
+            sock.leave(userId);
+            delete sock.odlutUserId;
+            setTimeout(() => {
+              try { sock.disconnect(true); } catch {}
+            }, 100);
+          } catch {}
+        }
+      }
+    }
+  } catch (e) {
+    runtimeLog('kickAndLogoutUser error: ' + (e ? e.message : 'unknown'));
+  }
+}
+
+app.post('/api/admin/users/:id/suspend', requireAdmin, (req, res) => {
+  const shouldSuspend = req.body?.suspend !== false;
+  for (const user of users.values()) {
+    if (user.id === req.params.id) {
+      user.isActive = !shouldSuspend;
+      saveStore();
+      if (shouldSuspend) {
+        kickAndLogoutUser(user.id);
+      }
+      return res.json({ message: 'OK', is_suspended: shouldSuspend });
+    }
+  }
+  res.status(404).json({ message: 'Not found' });
+});
+
 app.patch('/api/admin/users/:id/deactivate', requireAdmin, (req, res) => {
   for (const user of users.values()) {
     if (user.id === req.params.id) {
       user.isActive = false;
       saveStore();
+      kickAndLogoutUser(user.id);
       return res.json({ message: 'OK' });
     }
   }

@@ -2108,7 +2108,7 @@ export class SourceAdminComponent implements OnInit, OnDestroy {
       error: error => this.report(error)
     });
   }
-  setUserActive(user: AdminUser, active: boolean): void { this.patch(`/admin/users/${user.id}/${active ? 'activate' : 'deactivate'}`, {}).subscribe({ next: () => { user.isActive = active; this.success(`User ${active ? 'activated' : 'blocked'}.`); }, error: error => this.report(error) }); }
+  setUserActive(user: AdminUser, active: boolean): void { this.patch(`/admin/users/${user.id}/${active ? 'activate' : 'deactivate'}`, {}).subscribe({ next: () => { user.isActive = active; this.success(`User ${active ? 'activated' : 'blocked and logged out'}.`); }, error: error => this.report(error) }); }
   editBalance(user: AdminUser): void { this.balanceEditorUser = user; this.balanceEditorMode = 'set'; this.balanceEditorValue = String(user.balance); }
   closeBalanceEditor(): void { this.balanceEditorUser = null; this.balanceEditorMode = 'set'; this.balanceEditorValue = ''; }
   selectBalanceMode(mode: BalanceMode): void { this.balanceEditorMode = mode; this.balanceEditorValue = mode === 'set' ? String(this.balanceEditorUser?.balance ?? 0) : '0.00'; }
