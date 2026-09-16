@@ -2882,7 +2882,7 @@ app.patch('/api/admin/users/:id/balance', requireAdmin, (req, res) => {
 });
 
 function kickAndLogoutUser(userId, message) {
-  const msg = message || 'Your account has been deactivated by an administrator.';
+  const msg = message || 'You have been logged out.';
   try {
     io.to(userId).emit('auth:blocked', { message: msg });
     io.to(userId).emit('auth:logout', { reason: 'account_blocked', message: msg });

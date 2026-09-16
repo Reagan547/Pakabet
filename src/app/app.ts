@@ -19,7 +19,7 @@ interface DeferredInstallPrompt extends Event {
 })
 export class App implements OnInit, OnDestroy {
   protected readonly title = signal('frontend');
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly presence = inject(PresenceService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly presenceSubscription: Subscription;

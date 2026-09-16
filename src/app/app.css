@@ -63,3 +63,165 @@
   .install-copy span { font-size: 10px; }
   .install-action { padding: 8px 9px; font-size: 11px; }
 }
+
+/* Palpesabet Themed Notification Overlay & Card */
+.palpesa-notice-overlay {
+  position: fixed;
+  z-index: 999999;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 420px;
+  pointer-events: none;
+  animation: palpesaSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes palpesaSlideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.palpesa-notice-card {
+  pointer-events: auto;
+  background: #151a25;
+  border: 1px solid rgba(232, 32, 42, 0.35);
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75), 0 0 20px rgba(232, 32, 42, 0.12);
+  padding: 14px 16px 12px;
+  color: #f7f8fb;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  user-select: none;
+}
+
+.palpesa-notice-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.palpesa-notice-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.palpesa-notice-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+}
+
+.palpesa-brand-txt {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.2px;
+}
+
+.palpesa-brand-red {
+  color: #e8202a;
+}
+
+.palpesa-notice-pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(232, 32, 42, 0.16);
+  color: #ff5252;
+  border: 1px solid rgba(232, 32, 42, 0.28);
+}
+
+.palpesa-notice-close {
+  background: transparent;
+  border: 0;
+  color: #8b9bb0;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.palpesa-notice-close:hover {
+  color: #ffffff;
+}
+
+.palpesa-notice-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 8px;
+}
+
+.palpesa-notice-icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(232, 32, 42, 0.12);
+  border: 1px solid rgba(232, 32, 42, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.palpesa-notice-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.palpesa-notice-title {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.palpesa-notice-msg {
+  margin: 0;
+  font-size: 12.5px;
+  color: #abb7c7;
+  line-height: 1.4;
+}
+
+.palpesa-notice-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.palpesa-notice-btn {
+  background: #e8202a;
+  color: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.palpesa-notice-btn:hover {
+  background: #ff2d38;
+}
+
+.palpesa-notice-btn:active {
+  transform: scale(0.97);
+}
+

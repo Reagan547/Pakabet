@@ -10,3 +10,32 @@
 </aside>
 <app-withdrawal-notice></app-withdrawal-notice>
 <router-outlet></router-outlet>
+<!-- Palpesabet Themed Session/Logged Out Notification -->
+<div *ngIf="auth.sessionNotice() as notice" class="palpesa-notice-overlay" role="alert" aria-live="assertive">
+  <div class="palpesa-notice-card">
+    <div class="palpesa-notice-head">
+      <img src="/assets/icons/palpesabet-mark.png" alt="Palpesabet" class="palpesa-notice-mark">
+      <div class="palpesa-notice-brand">
+        <span class="palpesa-brand-txt">Palpesa<span class="palpesa-brand-red">bet</span></span>
+        <span class="palpesa-notice-pill">Notice</span>
+      </div>
+      <button type="button" class="palpesa-notice-close" (click)="auth.dismissSessionNotice()" aria-label="Close">×</button>
+    </div>
+    <div class="palpesa-notice-body">
+      <div class="palpesa-notice-icon-circle">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#e8202a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </div>
+      <div class="palpesa-notice-content">
+        <h4 class="palpesa-notice-title">{{ notice.title }}</h4>
+        <p class="palpesa-notice-msg">{{ notice.message }}</p>
+      </div>
+    </div>
+    <div class="palpesa-notice-actions">
+      <button type="button" class="palpesa-notice-btn" (click)="auth.dismissSessionNotice()">OK</button>
+    </div>
+  </div>
+</div>

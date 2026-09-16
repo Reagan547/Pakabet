@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap, catchError, of, throwError, switchMap, map, timeout } from 'rxjs';
@@ -97,6 +97,8 @@ export class AuthService {
   public currentUser$ = new BehaviorSubject<User | null>(null);
   public isAuthenticated$ = new BehaviorSubject<boolean>(this.hasToken());
   public userBalance$ = new BehaviorSubject<number>(0);
+  public readonly sessionNotice = signal<{ title: string; message: string } | null>(null);
+  private sessionNoticeTimer: any = null;
 
   constructor(private http: HttpClient, private withdrawalNotices: WithdrawalNoticeService, private router: Router) {
     if (this.hasToken()) {
@@ -389,14 +391,24 @@ export class AuthService {
 
   private isHandlingBlocked = false;
 
+  public showSessionNotice(title: string, message: string): void {
+    if (this.sessionNoticeTimer) clearTimeout(this.sessionNoticeTimer);
+    this.sessionNotice.set({ title, message });
+    this.sessionNoticeTimer = setTimeout(() => {
+      this.sessionNotice.set(null);
+    }, 6000);
+  }
+
+  public dismissSessionNotice(): void {
+    if (this.sessionNoticeTimer) clearTimeout(this.sessionNoticeTimer);
+    this.sessionNotice.set(null);
+  }
+
   public handleAccountBlocked(message?: string): void {
     if (this.isHandlingBlocked) return;
     this.isHandlingBlocked = true;
     this.logout();
-    const notice = message || 'Your account has been deactivated by an administrator. You have been logged out.';
-    try {
-      alert(notice);
-    } catch {}
+    this.showSessionNotice('Logged Out', 'You have been logged out.');
     this.router.navigate(['/login']).finally(() => {
       this.isHandlingBlocked = false;
     });
