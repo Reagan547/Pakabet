@@ -380,6 +380,26 @@ export class BetsComponent implements OnInit, OnDestroy {
 
   get isAuthenticated(): boolean { return this.auth.hasToken(); }
   get isAdmin(): boolean { return this.auth.isAdmin(); }
+  userDisplayName(): string {
+    const user = this.currentUser();
+    if (!user) return 'Player';
+    const uname = (user.username || '').trim();
+    if (/administrator|admin/i.test(uname) || this.isAdmin) {
+      const rawId = String(user.id || '');
+      const cleanId = rawId.replace(/^(superadmin|admin|user)[-_]?/i, '');
+      return cleanId ? `User ID: ${cleanId}` : (rawId ? `User ID: ${rawId}` : 'User ID');
+    }
+    return uname || 'Player';
+  }
+
+  userAvatarLetter(): string {
+    const name = this.userDisplayName();
+    if (name.startsWith('User ID: ')) {
+      const part = name.slice(9).trim();
+      return part.charAt(0) || 'U';
+    }
+    return name.charAt(0).toUpperCase() || 'U';
+  }
 
   // ── Derived markets ───────────────────────────────────────────────────────
   // Double chance and GG/NG are computed from the 1X2 prices so the alternative

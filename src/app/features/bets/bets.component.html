@@ -49,9 +49,9 @@
 
       <div class="pb-profile-menu pb-profile-menu-m" *ngIf="showProfileMenu() && isAuthenticated">
         <div class="pb-profile-head">
-          <span class="pb-avatar lg">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+          <span class="pb-avatar lg">{{ userAvatarLetter() }}</span>
           <div class="pb-profile-head-info">
-            <strong class="pb-profile-username">{{ currentUser()?.username || 'Player' }}</strong>
+            <strong class="pb-profile-username">{{ userDisplayName() }}</strong>
             <small class="pb-profile-balance">KSh {{ userBalance() | number:'1.2-2' }}</small>
           </div>
         </div>
@@ -130,9 +130,9 @@
           </button>
           <div class="pb-profile-menu" *ngIf="showProfileMenu()">
             <div class="pb-profile-head">
-              <span class="pb-avatar lg">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+              <span class="pb-avatar lg">{{ userAvatarLetter() }}</span>
               <div class="pb-profile-head-info">
-                <strong class="pb-profile-username">{{ currentUser()?.username || 'Player' }}</strong>
+                <strong class="pb-profile-username">{{ userDisplayName() }}</strong>
                 <small class="pb-profile-balance">KSh {{ userBalance() | number:'1.2-2' }}</small>
               </div>
             </div>
@@ -210,9 +210,9 @@
       </div>
 
       <div class="pb-drawer-player" *ngIf="isAuthenticated" (click)="openAccountModal()">
-        <span class="pb-avatar">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+        <span class="pb-avatar">{{ userAvatarLetter() }}</span>
         <div>
-          <strong>{{ currentUser()?.username || 'Player' }}</strong>
+          <strong>{{ userDisplayName() }}</strong>
           <small>KSh {{ userBalance() | number:'1.2-2' }}</small>
         </div>
         <span class="pb-chevron">›</span>
@@ -654,9 +654,9 @@
       </div>
       <div class="pb-modal-body">
         <div class="pb-account-card">
-          <span class="pb-avatar big">{{ currentUser()?.username?.charAt(0)?.toUpperCase() || 'U' }}</span>
+          <span class="pb-avatar big">{{ userAvatarLetter() }}</span>
           <div>
-            <strong>{{ currentUser()?.username || 'Player' }}</strong>
+            <strong>{{ userDisplayName() }}</strong>
             <span *ngIf="currentUser()?.phone_number">{{ currentUser()?.phone_number }}</span>
             <span class="pb-account-bal">KSh {{ userBalance() | number:'1.2-2' }}</span>
           </div>

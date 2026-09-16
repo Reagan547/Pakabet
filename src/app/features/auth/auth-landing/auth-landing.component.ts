@@ -113,19 +113,6 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
           </div>
 
-          <!-- PROMO CODE (REGISTER ONLY, OPTIONAL) -->
-          <div *ngIf="activeTab === 'register'" class="form-group margin-top-sm">
-            <input
-              type="text"
-              [(ngModel)]="promoCode"
-              name="promoCode"
-              class="standard-input"
-              placeholder="Promo code (optional)"
-              autocapitalize="characters"
-              (ngModelChange)="cleanPromoCode($event)"
-            />
-            <div class="field-hint">Got a promo code? Enter it to claim the offer. You can leave this blank.</div>
-          </div>
 
           <!-- SUBMIT BUTTON -->
           <button
