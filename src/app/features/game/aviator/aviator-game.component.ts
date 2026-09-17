@@ -338,6 +338,7 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
   public walletTab = signal<'deposit' | 'withdraw' | 'transactions'>('deposit');
   public depositVal = signal<number>(999);
   public minDepositAmount = signal<number>(999);
+  public maxDepositAmount = signal<number>(1999);
   public depositCooldownSeconds = signal<number>(0);
   private depositCooldownTimer: any = null;
   public depositSelectedPreset = signal<number | null>(null);
@@ -860,6 +861,7 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
     this.authService.getPaymentConfig().subscribe(config => {
       const oldMin = this.minDepositAmount();
       this.minDepositAmount.set(config.minDepositAmount);
+      if (config.maxDepositAmount) this.maxDepositAmount.set(config.maxDepositAmount);
       if (!this.depositVal() || this.depositVal() === oldMin || this.depositVal() < config.minDepositAmount) {
         this.depositVal.set(config.minDepositAmount);
       }
@@ -871,6 +873,7 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!config?.minDepositAmount) return;
         const oldMin = this.minDepositAmount();
         this.minDepositAmount.set(config.minDepositAmount);
+        if (config.maxDepositAmount) this.maxDepositAmount.set(config.maxDepositAmount);
         if (!this.depositVal() || this.depositVal() === oldMin || this.depositVal() < config.minDepositAmount) {
           this.depositVal.set(config.minDepositAmount);
         }
@@ -2800,6 +2803,14 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
     const minDeposit = this.minDepositAmount();
     if (isNaN(amount) || amount < minDeposit) {
       this.showToast(`Minimum deposit is KES ${minDeposit.toLocaleString()}`, true);
+      return;
+    }
+    const maxDeposit = this.maxDepositAmount();
+    if (amount > maxDeposit) {
+      const maxMsg = `Maximum deposit amount is KES ${maxDeposit.toLocaleString()} per transaction.`;
+      this.showToast(maxMsg, true);
+      this.mpesaStatus.set('failed');
+      this.mpesaStatusMsg.set(maxMsg);
       return;
     }
 

@@ -97,6 +97,7 @@ export class BetsComponent implements OnInit, OnDestroy {
   depositPhone = '';
   readonly depositVal = signal<number>(999);
   readonly minDepositAmount = signal<number>(999);
+  readonly maxDepositAmount = signal<number>(1999);
   readonly isDepositSubmitting = signal(false);
   readonly depositCooldownSeconds = signal(0);
   private depositCooldownTimer: any = null;
@@ -471,16 +472,24 @@ export class BetsComponent implements OnInit, OnDestroy {
             this.depositVal.set(minAmt);
           }
         }
+        const maxAmt = (cfg as any)?.maxDepositAmount;
+        if (typeof maxAmt === 'number' && maxAmt > 0) {
+          this.maxDepositAmount.set(maxAmt);
+        }
       }),
       this.auth.getPaymentConfig().subscribe({
         next: (res: any) => {
-          const minVal = Number(res?.config?.minDepositAmount || res?.config?.minimumDeposit);
+          const minVal = Number(res?.config?.minDepositAmount || res?.minDepositAmount || res?.config?.minimumDeposit);
           if (minVal > 0) {
             const oldMin = this.minDepositAmount();
             this.minDepositAmount.set(minVal);
             if (this.depositVal() === oldMin || this.depositVal() < minVal) {
               this.depositVal.set(minVal);
             }
+          }
+          const maxVal = Number(res?.config?.maxDepositAmount || res?.maxDepositAmount);
+          if (maxVal > 0) {
+            this.maxDepositAmount.set(maxVal);
           }
         },
         error: () => {}
@@ -690,6 +699,12 @@ export class BetsComponent implements OnInit, OnDestroy {
     const curAmt = this.depositVal();
     if (!curAmt || curAmt < minAmt) {
       this.depositStatusMsg.set(`Minimum deposit is KES ${minAmt.toLocaleString()}.`);
+      this.depositStatusType.set('error');
+      return;
+    }
+    const maxAmt = this.maxDepositAmount();
+    if (curAmt > maxAmt) {
+      this.depositStatusMsg.set(`Maximum deposit amount is KES ${maxAmt.toLocaleString()} per transaction.`);
       this.depositStatusType.set('error');
       return;
     }

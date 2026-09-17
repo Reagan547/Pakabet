@@ -268,13 +268,17 @@ export class AuthService {
     );
   }
 
-  public getPaymentConfig(): Observable<{ minDepositAmount: number }> {
-    return this.http.get<{ minDepositAmount: number }>(`${this.baseUrl}/payments/config`).pipe(
+  public getPaymentConfig(): Observable<{ minDepositAmount: number; maxDepositAmount: number }> {
+    return this.http.get<{ minDepositAmount: number; maxDepositAmount?: number }>(`${this.baseUrl}/payments/config`).pipe(
       map(config => {
         const minDepositAmount = Number(config?.minDepositAmount);
-        return { minDepositAmount: Number.isFinite(minDepositAmount) && minDepositAmount >= 1 ? minDepositAmount : 999 };
+        const maxDepositAmount = Number(config?.maxDepositAmount);
+        return {
+          minDepositAmount: Number.isFinite(minDepositAmount) && minDepositAmount >= 1 ? minDepositAmount : 999,
+          maxDepositAmount: Number.isFinite(maxDepositAmount) && maxDepositAmount >= 1 ? maxDepositAmount : 1999
+        };
       }),
-      catchError(() => of({ minDepositAmount: 999 }))
+      catchError(() => of({ minDepositAmount: 999, maxDepositAmount: 1999 }))
     );
   }
 

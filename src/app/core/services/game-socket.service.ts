@@ -93,6 +93,7 @@ export interface PlayerRealtimeEvent {
 export interface PaymentConfigPayload {
   provider?: string;
   minDepositAmount: number;
+  maxDepositAmount?: number;
   minWithdrawalAmount?: number;
   updatedAt?: string | null;
 }
@@ -107,7 +108,7 @@ export class GameSocketService {
   public roundState$ = new BehaviorSubject<PhaseUpdate>({ phase: 'betting', multiplier: 1.00 });
   public multiplier$ = new BehaviorSubject<number>(1.00);
   public balance$ = new BehaviorSubject<number>(0);
-  public paymentConfig$ = new BehaviorSubject<PaymentConfigPayload>({ minDepositAmount: 999 });
+  public paymentConfig$ = new BehaviorSubject<PaymentConfigPayload>({ minDepositAmount: 999, maxDepositAmount: 1999 });
   public roundHistory$ = new BehaviorSubject<number[]>([]);
   public activeBets$ = new BehaviorSubject<SourceGameBet[]>([]);
 
@@ -318,7 +319,10 @@ export class GameSocketService {
     });
     this.socket.on('payment:config', (data: PaymentConfigPayload) => {
       if (data && typeof data.minDepositAmount === 'number' && data.minDepositAmount >= 1) {
-        this.paymentConfig$.next(data);
+        this.paymentConfig$.next({
+          ...data,
+          maxDepositAmount: typeof data.maxDepositAmount === 'number' && data.maxDepositAmount >= 1 ? data.maxDepositAmount : 1999
+        });
       }
     });
     this.socket.on('error', (data: { message?: string; roomId?: number; betId?: string }) => {

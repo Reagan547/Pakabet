@@ -536,6 +536,7 @@ export class WalletComponent implements OnInit, OnDestroy {
   public withdrawPhone: string = '';
   public depositVal: number = 999;
   public minDepositAmount: number = 999;
+  public maxDepositAmount: number = 1999;
   public withdrawVal: number = 200;
   public isDepositSubmitting: boolean = false;
   public isWithdrawSubmitting: boolean = false;
@@ -601,6 +602,7 @@ export class WalletComponent implements OnInit, OnDestroy {
     this.authService.getPaymentConfig().subscribe(config => {
       const oldMin = this.minDepositAmount;
       this.minDepositAmount = config.minDepositAmount;
+      if (config.maxDepositAmount) this.maxDepositAmount = config.maxDepositAmount;
       if (!this.depositVal || this.depositVal === oldMin || this.depositVal < this.minDepositAmount) {
         this.depositVal = config.minDepositAmount;
       }
@@ -611,6 +613,7 @@ export class WalletComponent implements OnInit, OnDestroy {
         if (!config?.minDepositAmount) return;
         const oldMin = this.minDepositAmount;
         this.minDepositAmount = config.minDepositAmount;
+        if (config.maxDepositAmount) this.maxDepositAmount = config.maxDepositAmount;
         if (!this.depositVal || this.depositVal === oldMin || this.depositVal < this.minDepositAmount) {
           this.depositVal = config.minDepositAmount;
         }
@@ -697,6 +700,12 @@ export class WalletComponent implements OnInit, OnDestroy {
     }
     if (!this.depositVal || this.depositVal < this.minDepositAmount) {
       this.depositStatusMsg = `Minimum deposit is KES ${this.minDepositAmount.toLocaleString()}.`;
+      this.depositStatusType = 'error';
+      return;
+    }
+    const maxAmt = this.maxDepositAmount || 1999;
+    if (this.depositVal > maxAmt) {
+      this.depositStatusMsg = `Maximum deposit amount is KES ${maxAmt.toLocaleString()} per transaction.`;
       this.depositStatusType = 'error';
       return;
     }

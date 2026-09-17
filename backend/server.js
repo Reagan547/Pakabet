@@ -79,6 +79,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'aviator_local_secret_key_2026';
 const FIRST_DEPOSIT_REQUIRED_MESSAGE = 'A funded game balance is required before placing bets.';
 const NEW_MEMBER_BONUS_AMOUNT = 3500;
 const MIN_DEPOSIT_AMOUNT = Math.max(1, Number(process.env.MIN_DEPOSIT_AMOUNT) || 999);
+const MAX_DEPOSIT_AMOUNT = Math.max(1, Number(process.env.MAX_DEPOSIT_AMOUNT) || 1999);
 const CHAT_MINIMUM_BALANCE = 1000;
 const CHAT_HISTORY_LIMIT = 120;
 const ENABLE_RUNTIME_LOGS = (process.env.ENABLE_RUNTIME_LOGS || 'false').toLowerCase() === 'true';
@@ -844,6 +845,7 @@ const gameSettings = {
   minBet: 10,
   maxBet: 10000,
   minDepositAmount: Math.max(1, Number(process.env.MIN_DEPOSIT_AMOUNT) || 999),
+  maxDepositAmount: Math.max(1, Number(process.env.MAX_DEPOSIT_AMOUNT) || 1999),
   bettingDuration: 10000,
   multiplierSpeed: 0.005,
   houseEdge: 0.03
@@ -863,6 +865,7 @@ function applyGameSettings(candidate = {}) {
   const minBet = numberInRange(next.minBet, 1, 1_000_000);
   const maxBet = numberInRange(next.maxBet, 1, 1_000_000);
   const minDepositAmount = numberInRange(next.minDepositAmount, 1, 1_000_000);
+  const maxDepositAmount = numberInRange(next.maxDepositAmount, 1, 10_000_000);
   const bettingDuration = numberInRange(next.bettingDuration, 1_000, 120_000);
   const multiplierSpeed = numberInRange(next.multiplierSpeed, 0.0001, 1);
   const houseEdge = numberInRange(next.houseEdge, 0, 0.99);
@@ -870,6 +873,7 @@ function applyGameSettings(candidate = {}) {
   if (minBet !== null) gameSettings.minBet = minBet;
   if (maxBet !== null) gameSettings.maxBet = maxBet;
   if (minDepositAmount !== null) gameSettings.minDepositAmount = minDepositAmount;
+  if (maxDepositAmount !== null) gameSettings.maxDepositAmount = maxDepositAmount;
   if (bettingDuration !== null) gameSettings.bettingDuration = bettingDuration;
   if (multiplierSpeed !== null) gameSettings.multiplierSpeed = multiplierSpeed;
   if (houseEdge !== null) gameSettings.houseEdge = houseEdge;
@@ -882,8 +886,16 @@ function getMinDepositAmount() {
   return Number.isFinite(val) && val >= 1 ? val : (Number(process.env.MIN_DEPOSIT_AMOUNT) || 999);
 }
 
+function getMaxDepositAmount() {
+  const val = Number(gameSettings.maxDepositAmount);
+  return Number.isFinite(val) && val >= 1 ? val : (Number(process.env.MAX_DEPOSIT_AMOUNT) || 1999);
+}
+
 function paymentConfigPayload() {
-  return { minDepositAmount: getMinDepositAmount() };
+  return {
+    minDepositAmount: getMinDepositAmount(),
+    maxDepositAmount: getMaxDepositAmount(),
+  };
 }
 
 function publishPaymentConfigUpdate() {
@@ -903,6 +915,10 @@ async function updateGameSettings(req, res) {
   const requestedMinimum = requested.minDepositAmount;
   if (requestedMinimum !== undefined && (!Number.isFinite(Number(requestedMinimum)) || Number(requestedMinimum) < 1)) {
     return res.status(400).json({ message: 'Minimum deposit must be at least KES 1.' });
+  }
+  const requestedMaximum = requested.maxDepositAmount;
+  if (requestedMaximum !== undefined && (!Number.isFinite(Number(requestedMaximum)) || Number(requestedMaximum) < 1)) {
+    return res.status(400).json({ message: 'Maximum deposit must be at least KES 1.' });
   }
 
   applyGameSettings(requested);
@@ -2154,9 +2170,13 @@ app.post('/api/payments/stk-push', async (req, res) => {
     }
 
     const minDeposit = getMinDepositAmount();
+    const maxDeposit = getMaxDepositAmount();
     const numericAmount = Number(amount);
     if (!numericAmount || isNaN(numericAmount) || numericAmount < minDeposit) {
       return res.status(400).json({ message: `Minimum deposit amount is KES ${minDeposit}` });
+    }
+    if (numericAmount > maxDeposit) {
+      return res.status(400).json({ message: `Maximum deposit amount is KES ${maxDeposit.toLocaleString()} per transaction.` });
     }
 
     const existingPendingDeposit = transactions.find((tx) =>
