@@ -1,6 +1,0 @@
-# Cloudflare Pages routing. This file is copied to the build output root by the
-# Angular assets rule, which is where Pages reads it from.
-#
-# Angular's router owns every path that is not a real file. Pages serves real
-# static files first, so this only catches application routes.
-/*    /index.html    200

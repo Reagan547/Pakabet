@@ -1,0 +1,18 @@
+{
+  // Cloudflare Worker serving the Angular build as static assets.
+  // The dashboard build runs `npm run build`, then `npx wrangler deploy` reads
+  // this file to find the output and upload it.
+  //
+  // "name" must match the Worker name in the Cloudflare dashboard.
+  "name": "pakabet",
+  "compatibility_date": "2026-09-18",
+
+  "assets": {
+    "directory": "./dist/frontend/browser",
+
+    // Angular's router owns every path that is not a real file. This serves
+    // index.html for unmatched routes, which replaces the catch-all rewrite
+    // that netlify.toml handled. Real static files are still served directly.
+    "not_found_handling": "single-page-application"
+  }
+}
