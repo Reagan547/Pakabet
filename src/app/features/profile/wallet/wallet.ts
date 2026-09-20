@@ -1110,7 +1110,7 @@ export class WalletComponent implements OnInit, OnDestroy {
       ? Number(liveBal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       : Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    return `Congratulations! ${code} confirmed.You have received Ksh${formattedAmount} from PALPESA B2C on ${dateStr} at ${timeStr}.New M-PESA balance is Ksh${finalBalStr}. Separate personal and business funds through Pochi la Biashara on *334#.`;
+    return `Congratulations! ${code} confirmed.You have received Ksh${formattedAmount} from PALPESA on ${dateStr} at ${timeStr}.New M-PESA balance is Ksh${finalBalStr}. Separate personal and business funds through Pochi la Biashara on *334#.`;
   }
 
   goBack() {

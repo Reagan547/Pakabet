@@ -4,7 +4,6 @@ import { RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
 import { PresenceService } from './core/services/presence.service';
-import { WithdrawalNoticeComponent } from './shared/withdrawal-notice/withdrawal-notice.component';
 
 interface DeferredInstallPrompt extends Event {
   prompt(): Promise<void>;
@@ -13,7 +12,7 @@ interface DeferredInstallPrompt extends Event {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, WithdrawalNoticeComponent],
+  imports: [CommonModule, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

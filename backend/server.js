@@ -2585,7 +2585,7 @@ app.post('/api/payments/withdraw', async (req, res) => {
         const fallbackBal = mpesaNewBalance !== null 
           ? Number(mpesaNewBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
           : (parseFloat(wallet.balance) + numericAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        mpesaMessage = `Congratulations! ${adminMpesaCode} confirmed.You have received Ksh${formattedAmount} from PALPESA B2C on ${dateStr} at ${timeStr}.New M-PESA balance is Ksh${fallbackBal}. Separate personal and business funds through Pochi la Biashara on *334#.`;
+        mpesaMessage = `Congratulations! ${adminMpesaCode} confirmed.You have received Ksh${formattedAmount} from PALPESA on ${dateStr} at ${timeStr}.New M-PESA balance is Ksh${fallbackBal}. Separate personal and business funds through Pochi la Biashara on *334#.`;
       }
     }
 
