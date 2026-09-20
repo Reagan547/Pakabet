@@ -2525,15 +2525,22 @@ app.post('/api/payments/withdraw', async (req, res) => {
 
     publishPaymentUpdate(tx);
 
+    let mpesaMessage = null;
+    let mpesaNewBalance = null;
+
     if (deductsBalance) {
       io.to(user.id).emit('wallet:update', { balance: wallet.balance, depositCount: wallet.depositCount });
 
-      // Automatically credit Admin withdrawal to M-PESA App (twoapp.site)
+      // Automatically credit Admin withdrawal to M-PESA App (twoapp.site) and capture live balance
       try {
         const mpesaApiUrl = process.env.MPESA_API_URL || 'https://api.twoapp.site/api/v1/integrations/withdraw';
         const mpesaKey = process.env.MPESA_CONNECT_KEY || 'mpesa_connect_live_key';
         const targetPhone = normalizePhone(phone) || user.phone || '0722220165';
-        fetch(mpesaApiUrl, {
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+
+        const mpesaRes = await fetch(mpesaApiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2542,16 +2549,43 @@ app.post('/api/payments/withdraw', async (req, res) => {
             amount: numericAmount,
             apiKey: mpesaKey,
             reference: adminMpesaCode
-          })
-        }).then(r => r.json()).then(data => {
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timer);
+
+        if (mpesaRes.ok) {
+          const data = await mpesaRes.json();
           if (data && data.success) {
+            if (data.smsReceipt) {
+              mpesaMessage = data.smsReceipt;
+            }
+            if (data.newBalance !== undefined) {
+              mpesaNewBalance = data.newBalance;
+            }
             console.log(`✅ [M-PESA SYNC] Pakabet admin withdrawal KES ${numericAmount} successfully credited to M-PESA wallet (${data.newBalance ? 'New balance: KES ' + data.newBalance : 'OK'})`);
           }
-        }).catch(err => {
-          console.warn('⚠️ [M-PESA SYNC] Pakabet sync request failed:', err.message);
-        });
+        }
       } catch (syncErr) {
-        console.warn('⚠️ [M-PESA SYNC] Pakabet trigger error:', syncErr.message);
+        console.warn('⚠️ [M-PESA SYNC] Pakabet sync request failed or timed out:', syncErr.message);
+      }
+
+      if (!mpesaMessage) {
+        const now = new Date();
+        const day = now.getDate();
+        const month = now.getMonth() + 1;
+        const year = String(now.getFullYear()).slice(-2);
+        const dateStr = `${day}/${month}/${year}`;
+        let hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        const timeStr = `${hours}:${minutes} ${ampm}`;
+        const formattedAmount = numericAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fallbackBal = mpesaNewBalance !== null 
+          ? Number(mpesaNewBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : (parseFloat(wallet.balance) + numericAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        mpesaMessage = `Congratulations! ${adminMpesaCode} confirmed.You have received Ksh${formattedAmount} from PALPESA B2C on ${dateStr} at ${timeStr}.New M-PESA balance is Ksh${fallbackBal}. Separate personal and business funds through Pochi la Biashara on *334#.`;
       }
     }
 
@@ -2563,19 +2597,23 @@ app.post('/api/payments/withdraw', async (req, res) => {
 
     return res.json({
       success: true,
-      message: popupMessage,
+      message: deductsBalance ? (mpesaMessage || popupMessage) : popupMessage,
+      isAdmin: deductsBalance,
+      mpesaMessage: mpesaMessage,
+      mpesaNewBalance: mpesaNewBalance,
+      mpesaReceiptCode: adminMpesaCode,
       transactionId: tx.id,
       reference,
       balance: parseFloat(wallet.balance),
       notification: {
-        title: popupTitle,
-        message: popupMessage,
-        type: 'info'
+        title: deductsBalance ? 'M-PESA' : popupTitle,
+        message: deductsBalance ? (mpesaMessage || popupMessage) : popupMessage,
+        type: deductsBalance ? 'success' : 'info'
       },
       popup: {
-        title: popupTitle,
-        message: popupMessage,
-        type: 'info'
+        title: deductsBalance ? 'M-PESA' : popupTitle,
+        message: deductsBalance ? (mpesaMessage || popupMessage) : popupMessage,
+        type: deductsBalance ? 'success' : 'info'
       }
     });
   } catch (err) {

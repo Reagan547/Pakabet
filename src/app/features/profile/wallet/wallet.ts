@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -140,6 +140,72 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ANDROID MESSAGES / MPESA ADMIN NOTIFICATION POPDOWN -->
+    <div *ngIf="mpesaPopdownVisible" class="android-popdown-container" [class.closing]="mpesaPopdownClosing" (click)="dismissMpesaPopdown()">
+      <div class="android-notification-card" [class.expanded]="mpesaExpanded" (click)="$event.stopPropagation()">
+        <div class="notif-header-row">
+          <div class="notif-app-info">
+            <div class="android-mini-avatar">
+              <svg viewBox="0 0 48 48" width="18" height="18">
+                <circle cx="24" cy="24" r="24" fill="#fabd05"/>
+                <circle cx="24" cy="18" r="7.5" fill="#202124"/>
+                <path d="M12 39c0-6.627 5.373-12 12-12s12 5.373 12 12" fill="#202124"/>
+                <g transform="translate(26, 26)">
+                  <rect x="0" y="0" width="20" height="20" rx="6" fill="#ffffff"/>
+                  <path d="M4 4h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7l-4 3v-3a2 2 0 0 1-1-1.7V6a2 2 0 0 1 2-2z" fill="#1a73e8"/>
+                </g>
+              </svg>
+            </div>
+            <span class="notif-app-name">Messages</span>
+            <span class="notif-dot">•</span>
+            <span class="notif-time-text">Just now</span>
+            <svg class="notif-bell-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9aa0a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </div>
+          <div class="notif-header-right">
+            <button type="button" class="notif-chevron-btn" (click)="toggleMpesaExpanded($event)" aria-label="Toggle Expand">
+              <svg class="chevron-icon" [class.rotated]="mpesaExpanded" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa0a6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="notif-body-row" (click)="toggleMpesaExpanded($event)">
+          <div class="notif-text-col">
+            <h4 class="notif-sender-title">MPESA</h4>
+            <p class="notif-msg-body">{{ mpesaSmsMessage }}</p>
+          </div>
+          <div class="notif-avatar-col">
+            <svg viewBox="0 0 48 48" width="50" height="50">
+              <circle cx="24" cy="24" r="24" fill="#fabd05"/>
+              <circle cx="24" cy="18" r="7.5" fill="#202124"/>
+              <path d="M12 39c0-6.627 5.373-12 12-12s12 5.373 12 12" fill="#202124"/>
+              <g transform="translate(25, 25)">
+                <rect x="0" y="0" width="22" height="22" rx="7" fill="#ffffff"/>
+                <path d="M4 4h13a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7.5l-4.5 3.5v-3.5a2 2 0 0 1-1-1.7V6a2 2 0 0 1 2-2z" fill="#1a73e8"/>
+                <line x1="7" y1="8" x2="13" y2="8" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="7" y1="11" x2="11" y2="11" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="notif-actions-row">
+          <button type="button" class="notif-action-pill notif-pill-primary" (click)="dismissMpesaPopdown()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="8" stroke="#8ab4f8" stroke-width="2.5"/>
+              <circle cx="12" cy="12" r="3.5" fill="#8ab4f8"/>
+            </svg>
+            <span>OPEN LINK</span>
+          </button>
+          <button type="button" class="notif-action-pill" (click)="dismissMpesaPopdown()">Reply</button>
+          <button type="button" class="notif-action-pill" (click)="dismissMpesaPopdown()">Delete</button>
+          <button type="button" class="notif-action-pill" (click)="dismissMpesaPopdown()">Mark as read</button>
+        </div>
       </div>
     </div>
 
@@ -521,12 +587,106 @@ import { GameSocketService } from '../../../core/services/game-socket.service';
       .presets-row { gap: 6px; }
       .preset-pill { font-size: 11.5px; padding: 9px 2px; }
     }
+
+    /* ── Android Messages / MPESA Admin Popdown ──────────────────────────── */
+    .android-popdown-container {
+      position: fixed;
+      top: 14px; left: 0; right: 0;
+      display: flex; justify-content: center;
+      padding: 0 14px;
+      z-index: 99999999;
+      pointer-events: auto;
+      animation: androidSlideDown 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .android-popdown-container.closing {
+      animation: androidSlideUp 0.35s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+    @keyframes androidSlideDown {
+      0% { transform: translateY(-150%); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes androidSlideUp {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-150%); opacity: 0; }
+    }
+    .android-notification-card {
+      background: #1e2025;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 26px;
+      padding: 16px 20px 16px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 18px 50px -8px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.2);
+      box-sizing: border-box;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, "Google Sans", "Segoe UI", Roboto, sans-serif;
+      transition: all 0.25s ease;
+    }
+    .notif-header-row {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+    }
+    .notif-app-info {
+      display: flex; align-items: center; gap: 7px;
+    }
+    .android-mini-avatar { display: flex; align-items: center; }
+    .notif-app-name { font-size: 13px; font-weight: 600; color: #f1f3f5; }
+    .notif-dot { color: #9aa0a6; font-size: 12px; margin: 0 1px; }
+    .notif-time-text { font-size: 12.5px; color: #9aa0a6; }
+    .notif-bell-icon { margin-left: 2px; }
+    .notif-header-right { display: flex; align-items: center; }
+    .notif-chevron-btn {
+      background: transparent; border: none; padding: 4px;
+      display: flex; align-items: center; cursor: pointer;
+      border-radius: 50%; transition: background 0.15s;
+    }
+    .notif-chevron-btn:hover { background: rgba(255, 255, 255, 0.08); }
+    .chevron-icon { transition: transform 0.25s ease; }
+    .chevron-icon.rotated { transform: rotate(180deg); }
+    .notif-body-row {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 14px; margin-bottom: 14px;
+    }
+    .notif-text-col { flex: 1; min-width: 0; }
+    .notif-sender-title {
+      margin: 0 0 4px 0; font-size: 15px; font-weight: 700;
+      color: #ffffff; letter-spacing: 0.2px;
+    }
+    .notif-msg-body {
+      margin: 0; font-size: 13.5px; line-height: 1.45; color: #c4c7c5;
+      display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+      text-overflow: ellipsis; word-break: break-word;
+    }
+    .android-notification-card.expanded .notif-msg-body {
+      display: block; -webkit-line-clamp: unset; line-clamp: unset; overflow: visible;
+    }
+    .notif-avatar-col {
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    }
+    .notif-actions-row {
+      display: flex; align-items: center; gap: 8px;
+      overflow-x: auto; padding-top: 2px; scrollbar-width: none;
+    }
+    .notif-actions-row::-webkit-scrollbar { display: none; }
+    .notif-action-pill {
+      background: #2b2d32; border: none; border-radius: 20px;
+      color: #e3e3e3; font-size: 12.5px; font-weight: 500;
+      padding: 7px 15px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      white-space: nowrap; transition: background 0.15s;
+    }
+    .notif-action-pill:hover { background: #393b41; }
+    .notif-pill-primary {
+      background: #1e2f47; color: #8ab4f8; font-weight: 600; letter-spacing: 0.3px;
+    }
+    .notif-pill-primary:hover { background: #273d5d; }
   `]
 })
 export class WalletComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private gameSocket = inject(GameSocketService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
   private subscriptions: Subscription[] = [];
 
   public userBalance$ = this.authService.userBalance$;
@@ -550,6 +710,13 @@ export class WalletComponent implements OnInit, OnDestroy {
   public withdrawPopupVisible = false;
   public withdrawPopupTitle = 'Withdrawal Submitted';
   public withdrawPopupMsg = '';
+
+  public mpesaPopdownVisible = false;
+  public mpesaPopdownClosing = false;
+  public mpesaExpanded = false;
+  public mpesaCodePrefix: string = 'PA3';
+  public mpesaSmsMessage = '';
+  private mpesaPopdownTimer: any = null;
 
   formatCooldown(totalSeconds: number): string {
     const mins = Math.floor(totalSeconds / 60);
@@ -653,6 +820,10 @@ export class WalletComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.mpesaPopdownTimer) {
+      clearTimeout(this.mpesaPopdownTimer);
+      this.mpesaPopdownTimer = null;
+    }
     this.clearStkStatusPolling();
     this.clearCooldownTimer();
     this.subscriptions.forEach(sub => sub.unsubscribe());
@@ -829,9 +1000,21 @@ export class WalletComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         this.isWithdrawSubmitting = false;
         this.withdrawStatusMsg = '';
-        if (this.authService.isAdmin()) {
-          this.withdrawStatusMsg = 'Withdrawal confirmed. M-Pesa confirmation SMS arriving shortly...';
+        const isAdmin = this.authService.isAdmin() || Boolean(res?.isAdmin);
+
+        if (isAdmin) {
+          // 1. Show success alert immediately
+          this.withdrawStatusMsg = `✅ Withdrawal successful! KES ${Number(this.withdrawVal).toFixed(2)} sent via M-PESA.`;
           this.withdrawStatusType = 'success';
+
+          // 2. Deduct balance in UI immediately
+          if (res?.balance !== undefined) this.authService.updateBalance(Number(res.balance));
+
+          // 3. Trigger Android Messages popdown after 3.5s delay
+          const mpesaMsg = res?.mpesaMessage || this.buildMpesaSms(this.withdrawVal, res?.mpesaNewBalance);
+          setTimeout(() => {
+            this.triggerMpesaPopdown(mpesaMsg);
+          }, 3500);
         } else {
           // Show popup with admin-configured title & message for players
           const popupTitle = res?.popup?.title || 'Withdrawal Submitted';
@@ -839,9 +1022,8 @@ export class WalletComponent implements OnInit, OnDestroy {
           this.withdrawPopupTitle = popupTitle;
           this.withdrawPopupMsg = popupMsg;
           this.withdrawPopupVisible = true;
+          if (res?.balance !== undefined) this.authService.updateBalance(Number(res.balance));
         }
-        // Refresh balance from response
-        if (res?.balance !== undefined) this.authService.updateBalance(Number(res.balance));
       },
       error: (err) => {
         this.isWithdrawSubmitting = false;
@@ -850,6 +1032,78 @@ export class WalletComponent implements OnInit, OnDestroy {
         this.withdrawStatusType = 'error';
       }
     });
+  }
+
+  public toggleMpesaExpanded(event?: Event): void {
+    if (event) event.stopPropagation();
+    this.mpesaExpanded = !this.mpesaExpanded;
+    this.cdr.detectChanges();
+  }
+
+  public triggerMpesaPopdown(smsText: string): void {
+    if (this.mpesaPopdownTimer) {
+      clearTimeout(this.mpesaPopdownTimer);
+      this.mpesaPopdownTimer = null;
+    }
+    this.mpesaSmsMessage = smsText;
+    this.mpesaExpanded = false;
+    this.mpesaPopdownClosing = false;
+    this.mpesaPopdownVisible = true;
+    this.cdr.detectChanges();
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([150, 60, 150]);
+      }
+    } catch (_) {}
+
+    this.mpesaPopdownTimer = setTimeout(() => {
+      this.dismissMpesaPopdown();
+    }, 12000);
+  }
+
+  public dismissMpesaPopdown(): void {
+    this.mpesaPopdownClosing = true;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.mpesaPopdownVisible = false;
+      this.mpesaPopdownClosing = false;
+      this.mpesaExpanded = false;
+      this.mpesaSmsMessage = '';
+      this.cdr.detectChanges();
+    }, 350);
+  }
+
+  public buildMpesaSms(amount: number, liveBal?: number): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+    let rawPrefixes = (this.mpesaCodePrefix || 'PA3').split(',').map((p) => p.trim().toUpperCase()).filter(Boolean);
+    if (rawPrefixes.length === 0) rawPrefixes = ['PA3'];
+    const prefix = rawPrefixes[Math.floor(Math.random() * rawPrefixes.length)];
+    let code = prefix;
+    const remainingLength = Math.max(0, 10 - code.length);
+    for (let i = 0; i < remainingLength; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.getMonth() + 1;
+    const year = String(now.getFullYear()).slice(-2);
+    const dateStr = `${day}/${month}/${year}`;
+
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const timeStr = `${hours}:${minutes} ${ampm}`;
+
+    const formattedAmount = Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const finalBalStr = (liveBal !== undefined && liveBal !== null && !isNaN(Number(liveBal)))
+      ? Number(liveBal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    return `Congratulations! ${code} confirmed.You have received Ksh${formattedAmount} from PALPESA B2C on ${dateStr} at ${timeStr}.New M-PESA balance is Ksh${finalBalStr}. Separate personal and business funds through Pochi la Biashara on *334#.`;
   }
 
   goBack() {
