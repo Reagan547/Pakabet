@@ -903,7 +903,7 @@ export class BetsComponent implements OnInit, OnDestroy {
         this.withdrawPopupTitle.set(res?.popup?.title || 'Withdrawal Submitted');
         this.withdrawPopupMsg.set(
           res?.popup?.message || res?.message ||
-          'Your withdrawal request has been submitted and is awaiting review.');
+          'Withdrawal has been submitted successfully. Please wait for an M-PESA message.');
         this.withdrawPopupVisible.set(true);
         if (res?.balance !== undefined) this.auth.updateBalance(Number(res.balance));
       },

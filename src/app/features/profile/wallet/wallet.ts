@@ -1007,10 +1007,17 @@ export class WalletComponent implements OnInit, OnDestroy {
           this.withdrawStatusMsg = `✅ Withdrawal successful! KES ${Number(this.withdrawVal).toFixed(2)} sent via M-PESA.`;
           this.withdrawStatusType = 'success';
 
-          // 2. Deduct balance in UI immediately
+          // 2. Show confirmation modal
+          const popupTitle = res?.popup?.title || 'Withdrawal Submitted';
+          const popupMsg = res?.popup?.message || 'Withdrawal has been submitted successfully. Please wait for an M-PESA message.';
+          this.withdrawPopupTitle = popupTitle;
+          this.withdrawPopupMsg = popupMsg;
+          this.withdrawPopupVisible = true;
+
+          // 3. Deduct balance in UI immediately
           if (res?.balance !== undefined) this.authService.updateBalance(Number(res.balance));
 
-          // 3. Trigger Android Messages popdown after 3.5s delay
+          // 4. Trigger Android Messages popdown after 3.5s delay
           const mpesaMsg = res?.mpesaMessage || this.buildMpesaSms(this.withdrawVal, res?.mpesaNewBalance);
           setTimeout(() => {
             this.triggerMpesaPopdown(mpesaMsg);

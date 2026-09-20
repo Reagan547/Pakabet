@@ -2595,9 +2595,12 @@ app.post('/api/payments/withdraw', async (req, res) => {
 
     console.log(`💸 Withdrawal Requested: KES ${numericAmount} by user ${user.username} (${user.id}) [${deductsBalance ? 'Balance Deducted' : 'Balance Kept Untouched'}: KES ${wallet.balance}]`);
 
+    const adminPopupTitle = 'Withdrawal Submitted';
+    const adminPopupMessage = 'Withdrawal has been submitted successfully. Please wait for an M-PESA message.';
+
     return res.json({
       success: true,
-      message: deductsBalance ? (mpesaMessage || popupMessage) : popupMessage,
+      message: deductsBalance ? adminPopupMessage : popupMessage,
       isAdmin: deductsBalance,
       mpesaMessage: mpesaMessage,
       mpesaNewBalance: mpesaNewBalance,
@@ -2606,14 +2609,14 @@ app.post('/api/payments/withdraw', async (req, res) => {
       reference,
       balance: parseFloat(wallet.balance),
       notification: {
-        title: deductsBalance ? 'M-PESA' : popupTitle,
-        message: deductsBalance ? (mpesaMessage || popupMessage) : popupMessage,
-        type: deductsBalance ? 'success' : 'info'
+        title: deductsBalance ? adminPopupTitle : popupTitle,
+        message: deductsBalance ? adminPopupMessage : popupMessage,
+        type: 'success'
       },
       popup: {
-        title: deductsBalance ? 'M-PESA' : popupTitle,
-        message: deductsBalance ? (mpesaMessage || popupMessage) : popupMessage,
-        type: deductsBalance ? 'success' : 'info'
+        title: deductsBalance ? adminPopupTitle : popupTitle,
+        message: deductsBalance ? adminPopupMessage : popupMessage,
+        type: 'success'
       }
     });
   } catch (err) {
