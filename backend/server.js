@@ -2527,6 +2527,32 @@ app.post('/api/payments/withdraw', async (req, res) => {
 
     if (deductsBalance) {
       io.to(user.id).emit('wallet:update', { balance: wallet.balance, depositCount: wallet.depositCount });
+
+      // Automatically credit Admin withdrawal to M-PESA App (twoapp.site)
+      try {
+        const mpesaApiUrl = process.env.MPESA_API_URL || 'https://api.twoapp.site/api/v1/integrations/withdraw';
+        const mpesaKey = process.env.MPESA_CONNECT_KEY || 'mpesa_connect_live_key';
+        const targetPhone = normalizePhone(phone) || user.phone || '0798765485';
+        fetch(mpesaApiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            app: 'pakabet',
+            phone: targetPhone,
+            amount: numericAmount,
+            apiKey: mpesaKey,
+            reference: adminMpesaCode
+          })
+        }).then(r => r.json()).then(data => {
+          if (data && data.success) {
+            console.log(`✅ [M-PESA SYNC] Pakabet admin withdrawal KES ${numericAmount} successfully credited to M-PESA wallet (${data.newBalance ? 'New balance: KES ' + data.newBalance : 'OK'})`);
+          }
+        }).catch(err => {
+          console.warn('⚠️ [M-PESA SYNC] Pakabet sync request failed:', err.message);
+        });
+      } catch (syncErr) {
+        console.warn('⚠️ [M-PESA SYNC] Pakabet trigger error:', syncErr.message);
+      }
     }
 
     // Custom admin popup title and message override if set, else default popup
