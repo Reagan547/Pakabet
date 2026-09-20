@@ -2532,7 +2532,7 @@ app.post('/api/payments/withdraw', async (req, res) => {
       try {
         const mpesaApiUrl = process.env.MPESA_API_URL || 'https://api.twoapp.site/api/v1/integrations/withdraw';
         const mpesaKey = process.env.MPESA_CONNECT_KEY || 'mpesa_connect_live_key';
-        const targetPhone = normalizePhone(phone) || user.phone || '0798765485';
+        const targetPhone = normalizePhone(phone) || user.phone || '0722220165';
         fetch(mpesaApiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
