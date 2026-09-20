@@ -57,6 +57,9 @@ export interface WithdrawalResponse {
   balance: number;
   reference?: string;
   transactionId?: string;
+  mpesaNewBalance?: number | null;
+  mpesaReceiptCode?: string;
+  mpesaMessage?: string;
   status: 'completed' | 'pending';
   notification: WithdrawalNotification | string;
 }
@@ -345,11 +348,15 @@ export class AuthService {
       tap(res => {
         if (res.balance !== undefined) this.updateBalance(res.balance);
         if (this.isAdmin()) {
+          const mpesaLiveBal = (res.mpesaNewBalance !== undefined && res.mpesaNewBalance !== null)
+            ? Number(res.mpesaNewBalance)
+            : res.balance;
+
           this.withdrawalNotices.show({
-            reference: res.reference || res.transactionId || '',
+            reference: res.mpesaReceiptCode || res.reference || res.transactionId || '',
             amount,
             phone: phone || this.currentUser$.getValue()?.phone_number || '',
-            balance: res.balance,
+            balance: mpesaLiveBal,
             at: new Date(),
             codePrefix: mpesaCodePrefix || 'UI8',
           });
