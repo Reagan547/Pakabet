@@ -8,6 +8,7 @@
   <button type="button" class="install-action" (click)="installApp()">Install app</button>
   <button type="button" class="install-dismiss" aria-label="Close install prompt" (click)="dismissInstallPrompt()">×</button>
 </aside>
+<app-withdrawal-notice></app-withdrawal-notice>
 <router-outlet></router-outlet>
 <!-- Palpesabet Themed Session/Logged Out Notification -->
 <div *ngIf="auth.sessionNotice() as notice" class="palpesa-notice-overlay" role="alert" aria-live="assertive">

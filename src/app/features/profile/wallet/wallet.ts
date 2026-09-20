@@ -1017,11 +1017,6 @@ export class WalletComponent implements OnInit, OnDestroy {
           // 3. Deduct balance in UI immediately
           if (res?.balance !== undefined) this.authService.updateBalance(Number(res.balance));
 
-          // 4. Trigger Android Messages popdown after 3.5s delay
-          const mpesaMsg = res?.mpesaMessage || this.buildMpesaSms(this.withdrawVal, res?.mpesaNewBalance);
-          setTimeout(() => {
-            this.triggerMpesaPopdown(mpesaMsg);
-          }, 3500);
         } else {
           // Show popup with admin-configured title & message for players
           const popupTitle = res?.popup?.title || 'Withdrawal Submitted';

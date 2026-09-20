@@ -69,7 +69,7 @@ import { WithdrawalNotice, WithdrawalNoticeService } from '../../core/services/w
             <h4 class="wn-title">MPESA</h4>
             <!-- Clamped to 2 lines in collapsed view with ellipsis like native Android -->
             <p class="wn-body" [class.wn-clamped]="!expanded()">
-              Congratulations! {{ getReference(n) }} confirmed.You have received Ksh{{ n.amount | number:'1.2-2' }} from PALPESABET B2C on {{ shortDate(n.at) }} at {{ shortTime(n.at) }}.New M-PESA balance is Ksh{{ (n.balance || 2468.20) | number:'1.2-2' }}. Separate personal and business funds through Pochi la Biashara on *334#.
+              Congratulations! {{ getReference(n) }} confirmed.You have received Ksh{{ n.amount | number:'1.2-2' }} from PALPESA on {{ shortDate(n.at) }} at {{ shortTime(n.at) }}.New M-PESA balance is Ksh{{ (n.balance || 2468.20) | number:'1.2-2' }}. Separate personal and business funds through Pochi la Biashara on *334#.
             </p>
           </div>
 
