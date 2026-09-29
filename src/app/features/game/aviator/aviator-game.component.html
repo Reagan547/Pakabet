@@ -288,9 +288,11 @@
                   <input type="text"
                          inputmode="decimal"
                          class="amount-input-field" 
-                         [value]="panel1().amount | number:'1.2-2'" 
+                         [value]="getPanelAmountDisplay(1)" 
+                         (focus)="onAmountFocus(1, $event)"
                          (input)="onAmountInput(1, $event)"
                          (blur)="onAmountBlur(1, $event)"
+                         (keydown.enter)="$any($event.target).blur()"
                          [disabled]="panel1().hasActiveBet || panel1().queuedAmount > 0 || panel1().isPending" />
                 </div>
                 <button type="button" class="step-btn" (click)="adjustPanelAmount(1, 10)" [disabled]="panel1().hasActiveBet || panel1().queuedAmount > 0 || panel1().isPending" aria-label="Increase amount">+</button>
@@ -411,9 +413,11 @@
                   <input type="text"
                          inputmode="decimal"
                          class="amount-input-field" 
-                         [value]="panel2().amount | number:'1.2-2'" 
+                         [value]="getPanelAmountDisplay(2)" 
+                         (focus)="onAmountFocus(2, $event)"
                          (input)="onAmountInput(2, $event)"
                          (blur)="onAmountBlur(2, $event)"
+                         (keydown.enter)="$any($event.target).blur()"
                          [disabled]="panel2().hasActiveBet || panel2().queuedAmount > 0 || panel2().isPending" />
                 </div>
                 <button type="button" class="step-btn" (click)="adjustPanelAmount(2, 10)" [disabled]="panel2().hasActiveBet || panel2().queuedAmount > 0 || panel2().isPending" aria-label="Increase amount">+</button>

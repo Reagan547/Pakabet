@@ -2182,14 +2182,70 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
   // --------------------------------------------------------------------------
   // USER ACTION HANDLERS & MODALS
   // --------------------------------------------------------------------------
+  public isEditingPanel1 = false;
+  public isEditingPanel2 = false;
+  public panel1InputText = '';
+  public panel2InputText = '';
+
+  /** Returns formatted amount when resting, or the raw text while the user is actively typing. */
+  public getPanelAmountDisplay(panelIndex: 1 | 2): string {
+    if (panelIndex === 1) {
+      if (this.isEditingPanel1) {
+        return this.panel1InputText;
+      }
+      return this.panel1().amount.toFixed(2);
+    } else {
+      if (this.isEditingPanel2) {
+        return this.panel2InputText;
+      }
+      return this.panel2().amount.toFixed(2);
+    }
+  }
+
+  /** When the user focuses the amount box, present an unformatted integer/number and auto-select all text. */
+  public onAmountFocus(panelIndex: 1 | 2, event: Event) {
+    const target = event.target as HTMLInputElement;
+    const panel = panelIndex === 1 ? this.panel1() : this.panel2();
+    const amt = panel.amount;
+    // Show clean number without decimal places if whole number (e.g. "10" instead of "10.00")
+    const cleanText = amt % 1 === 0 ? amt.toFixed(0) : amt.toString();
+    if (panelIndex === 1) {
+      this.isEditingPanel1 = true;
+      this.panel1InputText = cleanText;
+    } else {
+      this.isEditingPanel2 = true;
+      this.panel2InputText = cleanText;
+    }
+    target.value = cleanText;
+    setTimeout(() => {
+      try {
+        target.select();
+      } catch (_) {}
+    }, 0);
+  }
+
   public onAmountInput(panelIndex: 1 | 2, event: Event) {
     const target = event.target as HTMLInputElement;
-    const raw = target.value.replace(/[^0-9.]/g, '');
-    const val = parseFloat(raw);
-    if (!isNaN(val) && val > 0) {
-      if (panelIndex === 1) {
+    // Allow digits and at most one decimal point with max 2 decimal places
+    let raw = target.value.replace(/[^0-9.]/g, '');
+    const dotIndex = raw.indexOf('.');
+    if (dotIndex !== -1) {
+      const intPart = raw.substring(0, dotIndex);
+      const decPart = raw.substring(dotIndex + 1).replace(/\./g, '').substring(0, 2);
+      raw = intPart + '.' + decPart;
+    }
+    target.value = raw;
+
+    if (panelIndex === 1) {
+      this.panel1InputText = raw;
+      const val = parseFloat(raw);
+      if (!isNaN(val) && val > 0) {
         this.panel1.update(p => ({ ...p, amount: val, selectedPreset: null }));
-      } else {
+      }
+    } else {
+      this.panel2InputText = raw;
+      const val = parseFloat(raw);
+      if (!isNaN(val) && val > 0) {
         this.panel2.update(p => ({ ...p, amount: val, selectedPreset: null }));
       }
     }
@@ -2198,10 +2254,33 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
   public onAmountBlur(panelIndex: 1 | 2, event: Event) {
     const target = event.target as HTMLInputElement;
     const panel = panelIndex === 1 ? this.panel1() : this.panel2();
-    target.value = panel.amount.toFixed(2);
+    let val = parseFloat(target.value);
+    if (isNaN(val) || val < 1) {
+      val = Math.max(1, panel.amount || 10);
+    }
+    val = Math.min(val, 300000);
+    val = Math.round(val * 100) / 100;
+
+    if (panelIndex === 1) {
+      this.isEditingPanel1 = false;
+      this.panel1InputText = '';
+      this.panel1.update(p => ({ ...p, amount: val, selectedPreset: null }));
+    } else {
+      this.isEditingPanel2 = false;
+      this.panel2InputText = '';
+      this.panel2.update(p => ({ ...p, amount: val, selectedPreset: null }));
+    }
+    target.value = val.toFixed(2);
   }
 
   public setPanelAmount(panelIndex: 1 | 2, value: any) {
+    if (panelIndex === 1) {
+      this.isEditingPanel1 = false;
+      this.panel1InputText = '';
+    } else {
+      this.isEditingPanel2 = false;
+      this.panel2InputText = '';
+    }
     const num = parseFloat(value);
     if (!isNaN(num) && num > 0) {
       if (panelIndex === 1) {
@@ -2213,9 +2292,16 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public adjustPanelAmount(panelIndex: 1 | 2, delta: number) {
+    if (panelIndex === 1) {
+      this.isEditingPanel1 = false;
+      this.panel1InputText = '';
+    } else {
+      this.isEditingPanel2 = false;
+      this.panel2InputText = '';
+    }
     const updateAmount = (panel: PanelBetState): PanelBetState => ({
       ...panel,
-      amount: Math.max(1, panel.amount + delta),
+      amount: Math.max(1, Math.round((panel.amount + delta) * 100) / 100),
       selectedPreset: null,
       presetTapCount: 0
     });
@@ -2229,6 +2315,13 @@ export class AviatorGameComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Repeated taps of one preset set its stake to preset × tap count. */
   public selectPresetAmount(panelIndex: 1 | 2, preset: number) {
+    if (panelIndex === 1) {
+      this.isEditingPanel1 = false;
+      this.panel1InputText = '';
+    } else {
+      this.isEditingPanel2 = false;
+      this.panel2InputText = '';
+    }
     const updatePreset = (panel: PanelBetState): PanelBetState => {
       const presetTapCount = panel.selectedPreset === preset ? panel.presetTapCount + 1 : 1;
       return {
